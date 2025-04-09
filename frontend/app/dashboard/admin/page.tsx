@@ -18,6 +18,7 @@ import {
   Legend,
 } from "recharts";
 import { Tractor, ClipboardCheck, Truck, Package, Users, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 
 // Sample data for charts
 const batchData = [
@@ -49,10 +50,14 @@ const shipmentData = [
 ];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-green-800">Dashboard</h2>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-green-800">Dashboard</h2>
+          <p className="text-black font-bold">Welcome back, {user?.name || "Admin"}</p>
+        </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-green-700">Last updated: Today, 10:30 AM</span>
         </div>

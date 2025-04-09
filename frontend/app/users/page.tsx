@@ -129,12 +129,12 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {users.filter((user) => user.userType === "Quality Inspector").length}
+              {users.filter((user) => user.userType === "quality inspector").length}
             </div>
             <p className="text-xs text-blue-600">
               {users.length > 0
                 ? `${Math.round(
-                    (users.filter((user) => user.userType === "Quality Inspector").length /
+                    (users.filter((user) => user.userType === "quality inspector").length /
                       users.length) *
                       100
                   )}% of users`
@@ -202,11 +202,11 @@ export default function UsersPage() {
                     <TableCell>
                       <Badge
                         className={
-                          user.userType === "Admin"
+                          user.userType === "admin"
                             ? "bg-purple-100 text-purple-800 hover:bg-purple-200"
-                            : user.userType === "Farmer"
+                            : user.userType === "farmer"
                             ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : user.userType === "Quality Inspector"
+                            : user.userType === "quality inspector"
                             ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
                             : "bg-amber-100 text-amber-800 hover:bg-amber-200"
                         }

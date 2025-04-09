@@ -85,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (
           pathname.startsWith("/dashboard/") &&
           !pathname.startsWith(userDashboard) &&
-          user.user_type !== "Admin"
+          user.user_type !== "admin"
         ) {
           router.push(userDashboard);
         }

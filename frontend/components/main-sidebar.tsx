@@ -77,7 +77,7 @@ export function MainSidebar() {
           <div className="bg-green-700 text-white p-1 rounded">
             <Beef size={24} />
           </div>
-          <div className="font-bold text-xl text-green-800">Farm Fresh Meats</div>
+          <div className="font-bold text-xl text-green-800">Green Meat</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -98,13 +98,13 @@ export function MainSidebar() {
                 >
                   <Link
                     href={
-                      user?.user_type === "Admin"
+                      user?.user_type === "admin"
                         ? "/dashboard/admin"
-                        : user?.user_type === "Farmer"
+                        : user?.user_type === "farmer"
                         ? "/dashboard/farmer"
-                        : user?.user_type === "Quality Inspector"
-                        ? "/dashboard/inspector"
-                        : user?.user_type === "Retailer"
+                        : user?.user_type === "quality inspector"
+                        ? "/dashboard/quality-inspector"
+                        : user?.user_type === "retailer"
                         ? "/dashboard/retailer"
                         : "/"
                     }

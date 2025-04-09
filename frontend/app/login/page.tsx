@@ -100,13 +100,13 @@ export default function LoginPage() {
 
       // Redirect based on user type from the response
       const userType = data.user.user_type;
-      if (userType === "Farmer") {
+      if (userType === "farmer") {
         router.push("/dashboard/farmer");
-      } else if (userType === "Quality Inspector") {
-        router.push("/dashboard/inspector");
-      } else if (userType === "Retailer") {
+      } else if (userType === "quality inspector") {
+        router.push("/dashboard/quality-inspector");
+      } else if (userType === "retailer") {
         router.push("/dashboard/retailer");
-      } else if (userType === "Admin") {
+      } else if (userType === "admin") {
         router.push("/dashboard/admin");
       } else {
         // Default to landing page for unknown roles

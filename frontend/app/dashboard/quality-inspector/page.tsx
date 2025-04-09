@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 
 // Sample data for charts
 const inspectionTrendData = [
@@ -112,18 +113,7 @@ const completedInspections = [
 ];
 
 export default function InspectorDashboard() {
-  const [userName, setUserName] = useState("Inspector");
-
-  // Simulate fetching user data
-  useEffect(() => {
-    // In a real app, you would fetch the user's name from an API
-    // For now, we'll just simulate it
-    const timer = setTimeout(() => {
-      setUserName("Sarah Johnson");
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { user } = useAuth();
 
   return (
     <div className="flex-1 space-y-4 p-8">
@@ -132,7 +122,7 @@ export default function InspectorDashboard() {
           <h2 className="text-3xl font-bold tracking-tight text-green-800">
             Quality Inspector Dashboard
           </h2>
-          <p className="text-muted-foreground">Welcome back, {userName}</p>
+          <p className="text-muted-foreground">Welcome back, {user?.name || "Quality Inspector"}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button className="bg-green-700 hover:bg-green-800">

@@ -27,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 
 // Sample data for charts
 const inventoryTrendData = [
@@ -121,25 +122,13 @@ const inventory = [
 ];
 
 export default function RetailerDashboard() {
-  const [userName, setUserName] = useState("Retailer");
-
-  // Simulate fetching user data
-  useEffect(() => {
-    // In a real app, you would fetch the user's name from an API
-    // For now, we'll just simulate it
-    const timer = setTimeout(() => {
-      setUserName("Michael Brown");
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+  const { user } = useAuth();
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex flex-col">
           <h2 className="text-3xl font-bold tracking-tight text-green-800">Retailer Dashboard</h2>
-          <p className="text-muted-foreground">Welcome back, {userName}</p>
+          <p className="text-black font-bold">Welcome back, {user?.name || "Retailer"}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button className="bg-green-700 hover:bg-green-800">
