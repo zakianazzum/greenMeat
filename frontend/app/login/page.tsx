@@ -87,20 +87,31 @@ export default function LoginPage() {
         throw new Error(data.detail || "Invalid email or password");
       }
 
-      // Store the token in localStorage or a more secure storage
-      if (data.access_token) {
-        localStorage.setItem("token", data.access_token);
-      }
+      // Store user data and token in sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(data.user));
+      sessionStorage.setItem("token", data.access_token);
 
       // Show success message
       toast({
         title: "Login successful!",
-        description: "Welcome back to Farm Fresh Meats.",
+        description: `Welcome back, ${data.user.name}!`,
         variant: "default",
       });
 
-      // Redirect to dashboard
-      router.push("/");
+      // Redirect based on user type from the response
+      const userType = data.user.user_type;
+      if (userType === "Farmer") {
+        router.push("/dashboard/farmer");
+      } else if (userType === "Quality Inspector") {
+        router.push("/dashboard/inspector");
+      } else if (userType === "Retailer") {
+        router.push("/dashboard/retailer");
+      } else if (userType === "Admin") {
+        router.push("/dashboard/admin");
+      } else {
+        // Default to landing page for unknown roles
+        router.push("/");
+      }
     } catch (error) {
       console.error("Login error:", error);
 
@@ -115,7 +126,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-4 w-full">
       <Card className="w-full max-w-md border-green-200 shadow-lg">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center">
@@ -123,7 +134,7 @@ export default function LoginPage() {
               <Beef size={32} />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-green-800">Green Meat</CardTitle>
+          <CardTitle className="text-2xl font-bold text-green-800">Farm Fresh Meats</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
