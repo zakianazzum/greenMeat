@@ -123,7 +123,7 @@ export default function LoginPage() {
               <Beef size={32} />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-green-800">Farm Fresh Meats</CardTitle>
+          <CardTitle className="text-2xl font-bold text-green-800">Green Meat</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

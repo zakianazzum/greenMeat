@@ -40,7 +40,7 @@ export function MainSidebar() {
           <div className="bg-green-700 text-white p-1 rounded">
             <Beef size={24} />
           </div>
-          <div className="font-bold text-xl text-green-800">CHOOSE A NAME (MASUD & ORPA)</div>
+          <div className="font-bold text-xl text-green-800">Green Meat</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
