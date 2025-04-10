@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS Farms(
+    farmID INT AUTO_INCREMENT PRIMARY KEY,
+    farmerID INT,
+    farmRegion VARCHAR(255),
+    FOREIGN KEY (farmerID) REFERENCES Farmer(farmerID)
+);
