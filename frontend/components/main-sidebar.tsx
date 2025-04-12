@@ -115,7 +115,7 @@ export function MainSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {/* Only show Users menu item for Admin */}
-              {user?.user_type === "Admin" && (
+              {user?.user_type === "admin" && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === "/users"}>
                     <Link href="/users">

@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS ProcessingRecord(
 	packagingDate DATE, 
 	packagingStatus varchar(50) 
 	 
-)
+);
