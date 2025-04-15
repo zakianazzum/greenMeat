@@ -37,8 +37,10 @@
 
 
 import os
-from app.db.db import db  # Assuming 'db' is your database connection object
 from dotenv import load_dotenv
+from app.db.db import (
+    db,
+)  # Assuming 'db' is your database connection object
 
 load_dotenv()
 
@@ -69,7 +71,7 @@ def execute_sql_file(db_connection, file_path):
 
 def execute_all_sql_files(root_path):
     """Loops through the 'SQL' folder under the given path and executes all .sql files."""
-    sql_folder_path = os.path.join(root_path, "SQL")
+    sql_folder_path = os.path.join(root_path)
 
     if not os.path.isdir(sql_folder_path):
         print(f"SQL folder not found at: {sql_folder_path}")

@@ -69,7 +69,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
-  title: "Farm Fresh Meats - Product Management",
+  title: "GreenMeat - Product Management",
   description: "Farm-to-table meat product management system",
 };
 

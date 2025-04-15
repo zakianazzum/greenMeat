@@ -15,7 +15,7 @@ def get_db_connection():  # Define a function to establish a connection to the M
             host="localhost",
             user="root",
             password="",
-            database="web_application",
+            database="GreenMeat",
         )
         return (
             db  # Return the database connection object if the connection is successful.

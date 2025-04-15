@@ -3,4 +3,5 @@ CREATE TABLE IF NOT EXISTS Farms(
     farmerID INT,
     farmRegion VARCHAR(255),
     FOREIGN KEY (farmerID) REFERENCES Farmer(farmerID)
+	FOREIGN KEY (farmRegion) REFERENCES Users(zoneId)
 );

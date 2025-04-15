@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
 	status varchar(255) DEFAULT 'Active',
+	zoneId varchar(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
