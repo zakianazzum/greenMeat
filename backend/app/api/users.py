@@ -82,16 +82,17 @@ def get_users():  # Get all users from the database
 async def create_user(request: Request):
     data = await request.json()
 
+    print(data)
     try:
         cursor = db.cursor()
-        sql = "INSERT IGNORE INTO users (name, user_type, password, email, zone) VALUES (%s, %s, %s, %s)"
+        sql = "INSERT IGNORE INTO users (name, user_type, password, email, zone) VALUES (%s, %s, %s, %s, %s)"
         val = (
             data["name"],
             data["user_type"],
             data["password"],
             data["email"],
             data["zone"],
-        )  # add user_type from the request body.
+        )
 
         cursor.execute(sql, val)
         db.commit()
@@ -146,3 +147,39 @@ async def login(request: Request):
 
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=f"Database error: {err}")
+
+
+@user_router.get("/userCountByType")
+async def get_user_counts_by_type():
+    if db is None:
+        return {"error": "Database connection failed"}
+
+    cursor = db.cursor()
+    try:
+        cursor.execute(
+            "SELECT user_type, COUNT(*) AS count FROM Users WHERE user_type != 'admin' GROUP BY user_type;"
+        )
+
+        result = cursor.fetchall()  # Fetch all the results
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+
+    cursor.close()
+
+    # Format the results into the desired JSON structure.
+    formatted_counts = []
+    rowCount = 0
+
+    for row in result:
+        formatted_count = {
+            "userType": row[0],  # user_type (the type of user)
+            "count": row[1],  # The count of users for that type
+        }
+        rowCount += row[1]
+        formatted_counts.append(formatted_count)
+
+    return {
+        "userCounts": formatted_counts,
+        "totalCount": rowCount,  # The total count of users
+    }  # Return the formatted counts in JSON format.

@@ -249,10 +249,10 @@ export default function SignupPage() {
                   <SelectValue placeholder="Select user type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Farmer">Farmer</SelectItem>
-                  <SelectItem value="Quality Inspector">Quality Inspector</SelectItem>
-                  <SelectItem value="Retailer">Retailer</SelectItem>
-                  <SelectItem value="Admin">Administrator</SelectItem>
+                  <SelectItem value="farmer">Farmer</SelectItem>
+                  <SelectItem value="quality inspector">Quality Inspector</SelectItem>
+                  <SelectItem value="retailer">Retailer</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>
               </Select>
               {errors.userType && <p className="text-xs text-red-500 mt-1">{errors.userType}</p>}

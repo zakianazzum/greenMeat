@@ -83,12 +83,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          {/* <AuthProvider> */}
-          <SidebarProvider>
-            <AppLayout>{children}</AppLayout>
-            <Toaster />
-          </SidebarProvider>
-          {/* </AuthProvider> */}
+          <AuthProvider>
+            <SidebarProvider>
+              <AppLayout>{children}</AppLayout>
+              <Toaster />
+            </SidebarProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

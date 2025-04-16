@@ -50,14 +50,14 @@ const shipmentData = [
 ];
 
 export default function Dashboard() {
-  //   const { user } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-green-800">Dashboard</h2>
-          {/* <p className="text-black font-bold">Welcome back, {user?.name || "Admin"}</p> */}
+          <p className="text-black font-bold">Welcome back, {user?.name || "Admin"}</p>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-green-700">Last updated: Today, 10:30 AM</span>
