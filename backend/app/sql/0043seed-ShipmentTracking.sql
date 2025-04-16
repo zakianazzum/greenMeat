@@ -1,0 +1,31 @@
+-- INSERT INTO
+-- 	ShipmentTracking (
+-- 		retailerID,
+-- 		transportationID,
+-- 		packageID,
+-- 		depertureDate,
+-- 		arrivalDate,
+-- 		temperature,
+-- 		longitude,
+-- 		latitude
+-- 	)
+-- SELECT
+-- 	r.retailerID,
+-- 	t.transportationID,
+-- 	pm.packageID,
+-- 	CURDATE () - INTERVAL FLOOR(RAND () * 30) DAY, -- Departure date in the last 30 days
+-- 	CASE
+-- 		WHEN RAND () < 0.9 THEN CURDATE () - INTERVAL FLOOR(RAND () * 30) DAY + INTERVAL FLOOR(RAND () * 2) + 1 DAY -- 90% of arrival dates within 2 days of departure (adding +1 to ensure arrival is after departure)
+-- 		ELSE CURDATE () - INTERVAL FLOOR(RAND () * 30) DAY + INTERVAL FLOOR(2 + (RAND () * 3)) + 1 DAY -- 10% of arrival dates between 2 and 5 days after departure
+-- 	END AS arrivalDate,
+-- 	CONCAT (ROUND(0 + (RAND () * 5), 2), '°C'), -- Random temperature between 0 and 5°C (appropriate for meat)
+-- 	CONCAT (ROUND(88.0 + (RAND () * 5), 6)), -- Random longitude between 88.0 and 93.5 (Bangladesh)
+-- 	CONCAT (ROUND(20.5 + (RAND () * 6), 6)) -- Random latitude between 20.5 and 26.5 (Bangladesh)
+-- FROM
+-- 	Retailer r
+-- 	JOIN Transportation t ON 1 = 1
+-- 	JOIN PackagedMeatBatch pm ON 1 = 1
+-- ORDER BY
+-- 	RAND ()
+-- LIMIT
+-- 	50;

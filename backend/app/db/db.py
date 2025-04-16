@@ -7,19 +7,25 @@ import mysql.connector  # Import the mysql.connector module to connect to MySQL 
 # This module provides a Python interface to connect to MySQL databases and execute SQL queries.
 
 
-def get_db_connection():  # Define a function to establish a connection to the MySQL database.
-    # This function returns a database connection object.
+def get_db_connection(
+    init=False,
+):
     try:
-        db = mysql.connector.connect(  ## Create a connection to the MySQL database.
-            # The connection parameters are provided as arguments to the connect() method.
-            host="localhost",
-            user="root",
-            password="",
-            database="GreenMeat",
-        )
-        return (
-            db  # Return the database connection object if the connection is successful.
-        )
+        if init:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="",
+            )
+        else:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="",
+                database="GreenMeat",
+            )
+
+        return db
     except (
         mysql.connector.Error
     ) as err:  # Handle any errors that occur during the connection attempt.
@@ -27,9 +33,3 @@ def get_db_connection():  # Define a function to establish a connection to the M
         print(f"Error: {err}")  # Print the error message.
         # This message will help in debugging the connection issue.
         return None
-
-
-db = (
-    get_db_connection()
-)  # Call the get_db_connection() function to establish a connection to the database.
-# The returned connection object is stored in the variable 'db'.

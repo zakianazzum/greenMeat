@@ -1,0 +1,21 @@
+-- INSERT INTO
+-- 	SensorData (
+-- 		trackingID,
+-- 		sensorID,
+-- 		recordedAt,
+-- 		temperature,
+-- 		humidity
+-- 	)
+-- SELECT
+-- 	st.trackingID,
+-- 	s.sensorID,
+-- 	CURDATE () - INTERVAL FLOOR(RAND () * 30) DAY, -- Random recorded date in the last 30 days
+-- 	CONCAT (ROUND(0 + (RAND () * 5), 2), ' °C'), -- Random temperature between 0°C and 5°C
+-- 	CONCAT (ROUND(50 + (RAND () * 50), 2), ' %') -- Random humidity between 50% and 100%
+-- FROM
+-- 	ShipmentTracking st
+-- 	JOIN Sensor s ON 1 = 1 -- Assuming a 1-to-1 relationship with the Sensor table for simplicity
+-- ORDER BY
+-- 	RAND ()
+-- LIMIT
+-- 	50;

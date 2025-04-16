@@ -15,13 +15,15 @@ from fastapi import (
 import mysql
 import mysql.connector  # Import APIRouter for creating API endpoints and Request for handlling HTTP requests.
 from app.db.db import (
-    db,
+    get_db_connection,
 )  # Import the database connection object 'db from the app/db/db.py' file.
 
 
 SECRET_KEY = "your-secret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+db = get_db_connection(False)  # Get the database connection object.
 
 
 def create_access_token(data: dict):
@@ -45,7 +47,7 @@ def get_users():  # Get all users from the database
 
     cursor = db.cursor()
     cursor.execute(
-        "SELECT id, name, user_type, email, created_at, status FROM users"
+        "SELECT id, name, user_type, email, created_at, status FROM Users"
     )  # Execute the SQL query to fetch all users from the database.
 
     result = cursor.fetchall()
@@ -82,12 +84,13 @@ async def create_user(request: Request):
 
     try:
         cursor = db.cursor()
-        sql = "INSERT INTO users (name, email, password, user_type) VALUES (%s, %s, %s, %s)"
+        sql = "INSERT IGNORE INTO users (name, user_type, password, email, zone) VALUES (%s, %s, %s, %s)"
         val = (
             data["name"],
-            data["email"],
-            data["password"],
             data["user_type"],
+            data["password"],
+            data["email"],
+            data["zone"],
         )  # add user_type from the request body.
 
         cursor.execute(sql, val)

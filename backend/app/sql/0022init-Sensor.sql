@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS Sensor(
    sensorID INT AUTO_INCREMENT PRIMARY KEY,
-    location VARCHAR(255),
-    type VARCHAR(255)
+   location VARCHAR(255) NOT NULL,
+   type VARCHAR(255) NOT NULL
 );

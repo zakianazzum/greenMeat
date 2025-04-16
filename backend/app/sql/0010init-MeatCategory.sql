@@ -1,5 +1,4 @@
 CREATE TABLE IF NOT EXISTS MeatCategory(
   categoryID INT AUTO_INCREMENT PRIMARY KEY,
-    categoryName VARCHAR(255),
-    description TEXT
+  categoryName VARCHAR(255) NOT NULL
 );

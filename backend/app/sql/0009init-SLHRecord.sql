@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS SLHRecord (
+	slhRecordID INT AUTO_INCREMENT PRIMARY KEY,
+	recordID INT NOT NULL,
+	cattleID INT NOT NULL,
+	FOREIGN KEY (cattleID) REFERENCES Cattle(cattleID),
+	FOREIGN KEY (recordID) REFERENCES SlaughterHouse(slaughterHouseId)
+);
