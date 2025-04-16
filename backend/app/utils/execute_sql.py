@@ -1,16 +1,42 @@
 import os
+import mysql.connector
 from dotenv import load_dotenv
-from app.db.db import (
-    get_db_connection,
-)  # Assuming 'db' is your database connection object
 
 load_dotenv()
+
+
+def get_db_connection(
+    init=False,
+):
+    try:
+        if init:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="",
+            )
+        else:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="",
+                database="greenmeat",
+            )
+
+        return db
+    except (
+        mysql.connector.Error
+    ) as err:  # Handle any errors that occur during the connection attempt.
+        # If an error occurs, print the error message and return None.
+        print(f"Error: {err}")  # Print the error message.
+        # This message will help in debugging the connection issue.
+        return None
 
 
 def execute_sql_file(db_connection, file_path):
     """Executes the SQL statements in the given file using the provided database connection."""
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             sql = file.read()
 
         print(f"🔧 Executing SQL script: {os.path.basename(file_path)}")
@@ -33,9 +59,10 @@ def execute_sql_file(db_connection, file_path):
 
 def execute_all_sql_files(root_path):
     """Loops through the 'SQL' folder under the given path and executes all .sql files."""
-    sql_folder_path = os.path.join(root_path)
+    sql_folder_path = os.path.join(root_path, "sql")
 
-    db = get_db_connection(True)
+    print(f"SQL folder path: {sql_folder_path}")
+    db = get_db_connection(False)
 
     if not os.path.isdir(sql_folder_path):
         print(f"SQL folder not found at: {sql_folder_path}")

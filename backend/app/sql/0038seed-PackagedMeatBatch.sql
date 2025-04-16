@@ -1,4 +1,4 @@
-INSERT INTO
+INSERT IGNORE INTO
 	PackagedMeatBatch (recordID, processedWeight, packagedUnits, storeID)
 SELECT
 	pr.recordID,

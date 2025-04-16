@@ -1,2 +1,2 @@
-CREATE DATABASE IF NOT EXISTS GreenMeat;
-USE GreenMeat;
+CREATE DATABASE IF NOT EXISTS greenmeat;
+USE greenmeat;
