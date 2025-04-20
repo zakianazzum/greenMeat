@@ -25,7 +25,7 @@ export default function LandingPage() {
               <div className="bg-green-700 text-white p-1.5 rounded">
                 <Beef size={28} />
               </div>
-              <div className="font-bold text-2xl text-green-800">CHOOSE A NAME (MASUD & ORPA)</div>
+              <div className="font-bold text-2xl text-green-800">Green Meat</div>
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="#features" className="text-green-700 hover:text-green-800 font-medium">
@@ -424,8 +424,8 @@ export default function LandingPage() {
               Trusted by Industry Leaders
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              See what our customers have to say about how (APP NAME: MASUD & ORPA) has transformed
-              their operations.
+              See what our customers have to say about how Green Meat has transformed their
+              operations.
             </p>
           </div>
 
@@ -444,9 +444,9 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "(NAME of the Application) has completely transformed how we manage our meat
-                  production. The traceability and quality control features have helped us improve
-                  our standards and gain trust from our customers."
+                  "Green Meat has completely transformed how we manage our meat production. The
+                  traceability and quality control features have helped us improve our standards and
+                  gain trust from our customers."
                 </p>
                 <div className="flex mt-4">
                   {[...Array(5)].map((_, i) => (
@@ -471,7 +471,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-green-800">ORPA KHATUN</h4>
+                    <h4 className="font-bold text-green-800"> SHAOLIN ORPA</h4>
                     <p className="text-sm text-gray-500">Quality Inspector, Quality First Inc.</p>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-green-800">MASUD MOLLA</h4>
+                    <h4 className="font-bold text-green-800">MASUD</h4>
                     <p className="text-sm text-gray-500">Operations Manager, Midwest Meats</p>
                   </div>
                 </div>
@@ -672,7 +672,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-xl text-green-100 mb-8 max-w-3xl mx-auto">
               Join hundreds of farms and meat producers who have streamlined their operations,
-              improved quality, and increased profitability with (APP NAME: MASUD & ORPA).
+              improved quality, and increased profitability with Green Meat.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup">
@@ -703,7 +703,7 @@ export default function LandingPage() {
                 <div className="bg-white p-1.5 rounded">
                   <Beef size={24} className="text-green-800" />
                 </div>
-                <div className="font-bold text-xl">APP NAME (MASUD & ORPA)</div>
+                <div className="font-bold text-xl">Green Meat</div>
               </div>
               <p className="text-green-200 mb-4">
                 Streamlining meat production from farm to table with complete traceability and
@@ -860,7 +860,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-green-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-green-200">© 2023 APP NAME (MASUD & ORPA). All rights reserved.</p>
+            <p className="text-green-200">© 2023 Green Meat. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="text-green-200 hover:text-white">
                 Privacy Policy

@@ -30,11 +30,13 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Update the formData state to include zone
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     userType: "",
+    zone: "", // Add zone field
     password: "",
     confirmPassword: "",
   });
@@ -69,6 +71,21 @@ export default function SignupPage() {
     }
   };
 
+  // Add a handler for zone selection
+  const handleZoneChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, zone: value }));
+
+    // Clear error when user selects
+    if (errors.zone) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.zone;
+        return newErrors;
+      });
+    }
+  };
+
+  // Update validateForm to include zone validation
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -82,6 +99,7 @@ export default function SignupPage() {
     }
 
     if (!formData.userType) newErrors.userType = "User type is required";
+    if (!formData.zone) newErrors.zone = "Zone is required"; // Add zone validation
 
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -99,6 +117,7 @@ export default function SignupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Update handleSubmit to include zone in the API data
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -112,6 +131,7 @@ export default function SignupPage() {
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         user_type: formData.userType,
+        zone: formData.zone, // Include zone in API data
         password: formData.password,
       };
 
@@ -152,7 +172,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-4 w-full">
       <Card className="w-full max-w-md border-green-200 shadow-lg">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center">
@@ -229,13 +249,39 @@ export default function SignupPage() {
                   <SelectValue placeholder="Select user type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Farmer">Farmer</SelectItem>
-                  <SelectItem value="Quality Inspector">Quality Inspector</SelectItem>
-                  <SelectItem value="Retailer">Retailer</SelectItem>
-                  <SelectItem value="Admin">Administrator</SelectItem>
+                  <SelectItem value="farmer">Farmer</SelectItem>
+                  <SelectItem value="quality inspector">Quality Inspector</SelectItem>
+                  <SelectItem value="retailer">Retailer</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>
               </Select>
               {errors.userType && <p className="text-xs text-red-500 mt-1">{errors.userType}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zone" className="text-green-800">
+                Zone
+              </Label>
+              <Select value={formData.zone} onValueChange={handleZoneChange}>
+                <SelectTrigger
+                  id="zone"
+                  className={`border-green-200 focus:ring-green-500 ${
+                    errors.zone ? "border-red-500" : ""
+                  }`}
+                >
+                  <SelectValue placeholder="Select your zone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Barishal">Barishal</SelectItem>
+                  <SelectItem value="Chittagong">Chittagong</SelectItem>
+                  <SelectItem value="Dhaka">Dhaka</SelectItem>
+                  <SelectItem value="Khulna">Khulna</SelectItem>
+                  <SelectItem value="Rajshahi">Rajshahi</SelectItem>
+                  <SelectItem value="Rangpur">Rangpur</SelectItem>
+                  <SelectItem value="Mymensingh">Mymensingh</SelectItem>
+                  <SelectItem value="Sylhet">Sylhet</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.zone && <p className="text-xs text-red-500 mt-1">{errors.zone}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-green-800">

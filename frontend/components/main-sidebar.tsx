@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -28,10 +29,46 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+// Define the User type
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  user_type: string;
+}
 
 export function MainSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Get user data from sessionStorage
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Clear session storage
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+
+    // Redirect to home page
+    router.push("/");
+  };
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <Sidebar className="border-r border-green-200">
@@ -40,7 +77,7 @@ export function MainSidebar() {
           <div className="bg-green-700 text-white p-1 rounded">
             <Beef size={24} />
           </div>
-          <div className="font-bold text-xl text-green-800">CHOOSE A NAME (MASUD & ORPA)</div>
+          <div className="font-bold text-xl text-green-800">Green Meat</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -48,22 +85,46 @@ export function MainSidebar() {
           <SidebarGroupLabel className="text-green-700">Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Show appropriate dashboard based on user type */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/"}>
-                  <Link href="/dashboard">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    pathname === "/dashboard/admin" ||
+                    pathname === "/dashboard/farmer" ||
+                    pathname === "/dashboard/inspector" ||
+                    pathname === "/dashboard/retailer"
+                  }
+                >
+                  <Link
+                    href={
+                      user?.user_type === "admin"
+                        ? "/dashboard/admin"
+                        : user?.user_type === "farmer"
+                        ? "/dashboard/farmer"
+                        : user?.user_type === "quality inspector"
+                        ? "/dashboard/quality-inspector"
+                        : user?.user_type === "retailer"
+                        ? "/dashboard/retailer"
+                        : "/"
+                    }
+                  >
                     <BarChart3 className="text-green-700" />
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/users"}>
-                  <Link href="/users">
-                    <Users className="text-green-700" />
-                    <span>Users</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {/* Only show Users menu item for Admin */}
+              {user?.user_type === "admin" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === "/users"}>
+                    <Link href="/users">
+                      <Users className="text-green-700" />
+                      <span>Users</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -149,14 +210,18 @@ export function MainSidebar() {
           <div className="flex items-center gap-2">
             <Avatar>
               <AvatarImage src="/placeholder.svg?height=32&width=32" />
-              <AvatarFallback className="bg-green-200 text-green-700">JD</AvatarFallback>
+              <AvatarFallback className="bg-green-200 text-green-700">
+                {user ? getInitials(user.name) : "U"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium text-sm">John Doe</div>
-              <div className="text-xs text-muted-foreground">Admin</div>
+              <div className="font-medium text-sm">{user?.name || "Guest"}</div>
+              <div className="text-xs text-muted-foreground">
+                {user?.user_type || "Not logged in"}
+              </div>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="text-green-700">
+          <Button variant="ghost" size="icon" className="text-green-700" onClick={handleLogout}>
             <LogOut size={18} />
           </Button>
         </div>
