@@ -45,8 +45,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkAuth = () => {
       const userData = sessionStorage.getItem("user");
       const token = sessionStorage.getItem("token");
+      console.log("You are here");
 
       if (userData && token) {
+        console.log("User data found in session storage:", userData, token);
+
         setUser(JSON.parse(userData));
       } else {
         setUser(null);
@@ -71,7 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Protect routes that require authentication
   useEffect(() => {
-    if (!loading) {
+    if (!loading && user !== null) {
       const publicRoutes = ["/", "/login", "/signup", "/forgot-password"];
       const isPublicRoute = publicRoutes.some((route) => pathname === route);
 

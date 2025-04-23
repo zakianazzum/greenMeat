@@ -2,7 +2,9 @@
 # Import necessary libraries
 
 # from typing import Union
-from app.api.users import user_router  # Import the user router from the users module
+from app.api.users import user_router 
+from app.api.dashboard import dashboard_router
+  # Import the user router from the users module
 
 # from fastapi import FastAPI  # Import FastAPI for creating the web application
 from fastapi import FastAPI  # Import FastAPI for creating the web application
@@ -30,5 +32,6 @@ app.add_middleware(  # Add CORS middleware to the FastAPI app
 )
 # Define the CORS middleware to handle cross-origin requests
 # This middleware allows requests from the specified origins and methods
-app.include_router(user_router)  # Include the user router in the FastAPI app
+app.include_router(user_router)
+app.include_router(dashboard_router)  # Include the user router in the FastAPI app
 # This allows the app to handle user-related API endpoints defined in the user_router module

@@ -47,7 +47,7 @@ def get_users():  # Get all users from the database
 
     cursor = db.cursor()
     cursor.execute(
-        "SELECT id, name, user_type, email, created_at, status FROM Users"
+        "SELECT id, name, user_type, email, created_at, status FROM users"
     )  # Execute the SQL query to fetch all users from the database.
 
     result = cursor.fetchall()
@@ -157,7 +157,7 @@ async def get_user_counts_by_type():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT user_type, COUNT(*) AS count FROM Users WHERE user_type != 'admin' GROUP BY user_type;"
+            "SELECT user_type, COUNT(*) AS count FROM users WHERE user_type != 'admin' GROUP BY user_type;"
         )
 
         result = cursor.fetchall()  # Fetch all the results

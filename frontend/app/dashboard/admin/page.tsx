@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { Tractor, ClipboardCheck, Truck, Package, Users, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { use, useEffect, useState } from "react";
 
 // Sample data for charts
 const batchData = [
@@ -51,6 +52,104 @@ const shipmentData = [
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [totalBatches, setTotalBatches] = useState(0);
+
+  useEffect(() => {
+	const fetchTotalBatches = async () => {
+		try{
+			const response = await fetch('http://localhost:8000/meatbatch',{
+				method: 'GET',
+				headers: {
+					contenttype: 'application/json',
+				}
+			})
+			const data = await response.json();
+			setTotalBatches(data.total_meat_batch);
+		}
+		catch (error) {
+			console.error("Error fetching total batches:", error);
+		}
+	}
+	fetchTotalBatches();
+  },[])
+
+    const [totalActiveFarms, setTotalActiveFarms] = useState(0);
+
+    useEffect(() => {
+      const fetchTotalActiveFarms = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/activeFarms", {
+            method: "GET",
+            headers: {
+              contenttype: "application/json",
+            },
+          });
+
+		  console.log(response);
+		  
+          const data = await response.json();
+
+		  console.log(data);
+		  
+          setTotalActiveFarms(data.active_farms);
+        } catch (error) {
+          console.error("Error fetching total active farms:", error);
+        }
+      };
+      fetchTotalActiveFarms();
+    }, []);
+
+	    const [pendingInspections, setTotalPendingInspections] = useState(0);
+
+      useEffect(() => {
+        const fetchpendingInspections = async () => {
+          try {
+            const response = await fetch("http://localhost:8000/pendingInspections", {
+              method: "GET",
+              headers: {
+                contenttype: "application/json",
+              },
+            });
+
+            console.log(response);
+
+            const data = await response.json();
+
+            console.log(data);
+
+            setTotalPendingInspections(data.pending_inspections);
+          } catch (error) {
+            console.error("Error fetching total active farms:", error);
+          }
+        };
+        fetchpendingInspections();
+      }, []);
+
+	  	    const [activeShipment, setActiveShipment] = useState(0);
+
+          useEffect(() => {
+            const fetchactiveShipment = async () => {
+              try {
+                const response = await fetch("http://localhost:8000/activeShipment", {
+                  method: "GET",
+                  headers: {
+                    contenttype: "application/json",
+                  },
+                });
+
+                console.log(response);
+
+                const data = await response.json();
+
+                console.log(data);
+
+                setActiveShipment(data.active_shipment);
+              } catch (error) {
+                console.error("Error fetching total active farms:", error);
+              }
+            };
+            fetchactiveShipment();
+          }, []);
 
   return (
     <div className="flex-1 space-y-4 p-8">
@@ -71,8 +170,8 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">348</div>
-            <p className="text-xs text-green-600">+12% from last month</p>
+            <div className="text-2xl font-bold text-green-800">{totalBatches}</div>
+            {/* <p className="text-xs text-green-600">+12% from last month</p> */}
           </CardContent>
         </Card>
 
@@ -82,8 +181,8 @@ export default function Dashboard() {
             <Tractor className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">24</div>
-            <p className="text-xs text-green-600">+2 new this month</p>
+            <div className="text-2xl font-bold text-green-800">{totalActiveFarms}</div>
+            {/* <p className="text-xs text-green-600">+2 new this month</p> */}
           </CardContent>
         </Card>
 
@@ -93,8 +192,8 @@ export default function Dashboard() {
             <ClipboardCheck className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">12</div>
-            <p className="text-xs text-green-600">-3 from yesterday</p>
+            <div className="text-2xl font-bold text-green-800">{pendingInspections}</div>
+            {/* <p className="text-xs text-green-600">-3 from yesterday</p> */}
           </CardContent>
         </Card>
 
@@ -104,8 +203,8 @@ export default function Dashboard() {
             <Truck className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">18</div>
-            <p className="text-xs text-green-600">+5 from yesterday</p>
+            <div className="text-2xl font-bold text-green-800">{activeShipment}</div>
+            {/* <p className="text-xs text-green-600">+5 from yesterday</p> */}
           </CardContent>
         </Card>
       </div>
