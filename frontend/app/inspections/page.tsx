@@ -1,71 +1,115 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { ClipboardCheck, Search, Filter } from "lucide-react"
-import { AddInspectionDialog } from "@/components/add-inspection-dialog"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ClipboardCheck, Search, Filter } from "lucide-react";
+import { AddInspectionDialog } from "@/components/add-inspection-dialog";
+import { useEffect, useState } from "react";
 
 // Sample data for inspection reports
-const inspections = [
-  {
-    id: "R5001",
-    batchId: "B1001",
-    inspectorId: "I101",
-    date: "2023-07-16",
-    score: 92,
-    status: "Completed",
-    remarks: "Meets all quality standards",
-  },
-  {
-    id: "R5002",
-    batchId: "B1002",
-    inspectorId: "I102",
-    date: "2023-07-17",
-    score: 0,
-    status: "Pending",
-    remarks: "Scheduled for tomorrow",
-  },
-  {
-    id: "R5003",
-    batchId: "B1003",
-    inspectorId: "I101",
-    date: "2023-07-18",
-    score: 88,
-    status: "Completed",
-    remarks: "Minor issues with packaging",
-  },
-  {
-    id: "R5004",
-    batchId: "B1004",
-    inspectorId: "I103",
-    date: "2023-07-19",
-    score: 65,
-    status: "Failed",
-    remarks: "Temperature control issues",
-  },
-  {
-    id: "R5005",
-    batchId: "B1005",
-    inspectorId: "I102",
-    date: "2023-07-20",
-    score: 95,
-    status: "Completed",
-    remarks: "Excellent quality",
-  },
-  {
-    id: "R5006",
-    batchId: "B1006",
-    inspectorId: "I101",
-    date: "2023-07-21",
-    score: 0,
-    status: "Pending",
-    remarks: "Awaiting inspector",
-  },
-]
+// const inspections = [
+//   {
+//     id: "R5001",
+//     batchId: "B1001",
+//     inspectorId: "I101",
+//     date: "2023-07-16",
+//     score: 92,
+//     status: "Completed",
+//     remarks: "Meets all quality standards",
+//   },
+//   {
+//     id: "R5002",
+//     batchId: "B1002",
+//     inspectorId: "I102",
+//     date: "2023-07-17",
+//     score: 0,
+//     status: "Pending",
+//     remarks: "Scheduled for tomorrow",
+//   },
+//   {
+//     id: "R5003",
+//     batchId: "B1003",
+//     inspectorId: "I101",
+//     date: "2023-07-18",
+//     score: 88,
+//     status: "Completed",
+//     remarks: "Minor issues with packaging",
+//   },
+//   {
+//     id: "R5004",
+//     batchId: "B1004",
+//     inspectorId: "I103",
+//     date: "2023-07-19",
+//     score: 65,
+//     status: "Failed",
+//     remarks: "Temperature control issues",
+//   },
+//   {
+//     id: "R5005",
+//     batchId: "B1005",
+//     inspectorId: "I102",
+//     date: "2023-07-20",
+//     score: 95,
+//     status: "Completed",
+//     remarks: "Excellent quality",
+//   },
+//   {
+//     id: "R5006",
+//     batchId: "B1006",
+//     inspectorId: "I101",
+//     date: "2023-07-21",
+//     score: 0,
+//     status: "Pending",
+//     remarks: "Awaiting inspector",
+//   },
+// ]
 
 export default function InspectionsPage() {
+  interface inspectionData {
+    id: number;
+    batchId: number;
+    inspectorId: number;
+    date: string;
+    score: number;
+    status: string;
+    remarks: string;
+  }
+
+  const [inspection, setInspection] = useState<inspectionData[]>([]);
+
+  useEffect(() => {
+    const fetchinspection = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/inspectionReport", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        // Map the data to the format required by the chart
+        setInspection(data);
+      } catch (error) {
+        console.error("Error fetching inspection report:", error);
+      }
+    };
+    fetchinspection();
+  }, []);
+
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
@@ -76,7 +120,11 @@ export default function InspectionsPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search inspections..." className="pl-8 bg-white border-green-200" />
+          <Input
+            type="search"
+            placeholder="Search inspections..."
+            className="pl-8 bg-white border-green-200"
+          />
         </div>
         <Button variant="outline" className="border-green-200">
           <Filter className="mr-2 h-4 w-4 text-green-700" /> Filter
@@ -149,7 +197,7 @@ export default function InspectionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {inspections.map((inspection) => (
+              {inspection.map((inspection) => (
                 <TableRow key={inspection.id} className="hover:bg-green-50">
                   <TableCell className="font-medium">{inspection.id}</TableCell>
                   <TableCell>{inspection.batchId}</TableCell>
@@ -162,11 +210,11 @@ export default function InspectionsPage() {
                           value={inspection.score}
                           className="h-2"
                           indicatorClassName={
-                            inspection.score >= 80
+                            inspection.score >= 1
                               ? "bg-green-600"
-                              : inspection.score >= 70
-                                ? "bg-amber-500"
-                                : "bg-red-500"
+                              : inspection.score >= 1
+                              ? "bg-amber-500"
+                              : "bg-red-500"
                           }
                         />
                         <span className="text-sm">{inspection.score}%</span>
@@ -178,11 +226,11 @@ export default function InspectionsPage() {
                   <TableCell>
                     <Badge
                       className={
-                        inspection.status === "Completed"
+                        inspection.status === "Pass"
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : inspection.status === "Pending"
-                            ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                            : "bg-red-100 text-red-800 hover:bg-red-200"
+                          : inspection.status === "Recheck"
+                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : "bg-red-100 text-red-800 hover:bg-red-200"
                       }
                     >
                       {inspection.status}
@@ -192,10 +240,18 @@ export default function InspectionsPage() {
                     {inspection.remarks}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="text-green-700 hover:text-green-800 hover:bg-green-50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                    >
                       View
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-green-700 hover:text-green-800 hover:bg-green-50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                    >
                       Edit
                     </Button>
                   </TableCell>
@@ -206,6 +262,5 @@ export default function InspectionsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

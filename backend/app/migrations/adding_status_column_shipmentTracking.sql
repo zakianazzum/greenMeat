@@ -1,0 +1,2 @@
+ALTER TABLE ShipmentTracking
+ADD COLUMN status VARCHAR(50);

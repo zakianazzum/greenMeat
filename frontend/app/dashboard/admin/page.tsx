@@ -22,15 +22,15 @@ import { useAuth } from "@/components/auth-provider";
 import { use, useEffect, useState } from "react";
 
 // Sample data for charts
-const batchData = [
-  { name: "Jan", value: 45 },
-  { name: "Feb", value: 52 },
-  { name: "Mar", value: 48 },
-  { name: "Apr", value: 61 },
-  { name: "May", value: 55 },
-  { name: "Jun", value: 67 },
-  { name: "Jul", value: 70 },
-];
+// const batchData = [
+//   { name: "Jan", value: 45 },
+//   { name: "Feb", value: 52 },
+//   { name: "Mar", value: 48 },
+//   { name: "Apr", value: 61 },
+//   { name: "May", value: 55 },
+//   { name: "Jun", value: 67 },
+//   { name: "Jul", value: 70 },
+// ];
 
 const qualityData = [
   { name: "Premium", value: 35 },
@@ -55,101 +55,135 @@ export default function Dashboard() {
   const [totalBatches, setTotalBatches] = useState(0);
 
   useEffect(() => {
-	const fetchTotalBatches = async () => {
-		try{
-			const response = await fetch('http://localhost:8000/meatbatch',{
-				method: 'GET',
-				headers: {
-					contenttype: 'application/json',
-				}
-			})
-			const data = await response.json();
-			setTotalBatches(data.total_meat_batch);
-		}
-		catch (error) {
-			console.error("Error fetching total batches:", error);
-		}
-	}
-	fetchTotalBatches();
-  },[])
+    const fetchTotalBatches = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/meatbatch", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+        const data = await response.json();
+        setTotalBatches(data.total_meat_batch);
+      } catch (error) {
+        console.error("Error fetching total batches:", error);
+      }
+    };
+    fetchTotalBatches();
+  }, []);
 
-    const [totalActiveFarms, setTotalActiveFarms] = useState(0);
+  const [totalActiveFarms, setTotalActiveFarms] = useState(0);
 
-    useEffect(() => {
-      const fetchTotalActiveFarms = async () => {
-        try {
-          const response = await fetch("http://localhost:8000/activeFarms", {
-            method: "GET",
-            headers: {
-              contenttype: "application/json",
-            },
-          });
+  useEffect(() => {
+    const fetchTotalActiveFarms = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/activeFarms", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
 
-		  console.log(response);
-		  
-          const data = await response.json();
+        console.log(response);
 
-		  console.log(data);
-		  
-          setTotalActiveFarms(data.active_farms);
-        } catch (error) {
-          console.error("Error fetching total active farms:", error);
-        }
-      };
-      fetchTotalActiveFarms();
-    }, []);
+        const data = await response.json();
 
-	    const [pendingInspections, setTotalPendingInspections] = useState(0);
+        console.log(data);
 
-      useEffect(() => {
-        const fetchpendingInspections = async () => {
-          try {
-            const response = await fetch("http://localhost:8000/pendingInspections", {
-              method: "GET",
-              headers: {
-                contenttype: "application/json",
-              },
-            });
+        setTotalActiveFarms(data.active_farms);
+      } catch (error) {
+        console.error("Error fetching total active farms:", error);
+      }
+    };
+    fetchTotalActiveFarms();
+  }, []);
 
-            console.log(response);
+  const [pendingInspections, setTotalPendingInspections] = useState(0);
 
-            const data = await response.json();
+  useEffect(() => {
+    const fetchpendingInspections = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/pendingInspections", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
 
-            console.log(data);
+        console.log(response);
 
-            setTotalPendingInspections(data.pending_inspections);
-          } catch (error) {
-            console.error("Error fetching total active farms:", error);
-          }
-        };
-        fetchpendingInspections();
-      }, []);
+        const data = await response.json();
 
-	  	    const [activeShipment, setActiveShipment] = useState(0);
+        console.log(data);
 
-          useEffect(() => {
-            const fetchactiveShipment = async () => {
-              try {
-                const response = await fetch("http://localhost:8000/activeShipment", {
-                  method: "GET",
-                  headers: {
-                    contenttype: "application/json",
-                  },
-                });
+        setTotalPendingInspections(data.pending_inspections);
+      } catch (error) {
+        console.error("Error fetching total active farms:", error);
+      }
+    };
+    fetchpendingInspections();
+  }, []);
 
-                console.log(response);
+  const [activeShipment, setActiveShipment] = useState(0);
 
-                const data = await response.json();
+  useEffect(() => {
+    const fetchactiveShipment = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/activeShipment", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
 
-                console.log(data);
+        console.log(response);
 
-                setActiveShipment(data.active_shipment);
-              } catch (error) {
-                console.error("Error fetching total active farms:", error);
-              }
-            };
-            fetchactiveShipment();
-          }, []);
+        const data = await response.json();
+
+        console.log(data);
+
+        setActiveShipment(data.active_shipment);
+      } catch (error) {
+        console.error("Error fetching total active farms:", error);
+      }
+    };
+    fetchactiveShipment();
+  }, []);
+
+  interface BatchData {
+    month: string;
+    batch_count: number;
+  }
+
+  const [batchCountMonthly, setBatchCountMonthly] = useState<BatchData[]>([]);
+
+  useEffect(() => {
+    const fetchbatchCountMonthly = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/batchCounts/monthly", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        // Map the data to the format required by the chart
+        const formattedData = data.map((item: BatchData) => ({
+          name: item.month,
+          value: item.batch_count,
+        }));
+
+        setBatchCountMonthly(formattedData);
+      } catch (error) {
+        console.error("Error fetching monthly batch count:", error);
+      }
+    };
+    fetchbatchCountMonthly();
+  }, []);
 
   return (
     <div className="flex-1 space-y-4 p-8">
@@ -225,7 +259,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={batchData}>
+                  <BarChart data={batchCountMonthly}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />

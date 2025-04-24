@@ -2,9 +2,13 @@
 # Import necessary libraries
 
 # from typing import Union
-from app.api.users import user_router 
+from app.api.users import user_router
 from app.api.dashboard import dashboard_router
-  # Import the user router from the users module
+from app.api.items import items_router  # Import the items router from the items module
+from app.api.inspection import inspection_router
+from app.api.shipment import shipment_router
+
+# Import the user router from the users module
 
 # from fastapi import FastAPI  # Import FastAPI for creating the web application
 from fastapi import FastAPI  # Import FastAPI for creating the web application
@@ -35,3 +39,6 @@ app.add_middleware(  # Add CORS middleware to the FastAPI app
 app.include_router(user_router)
 app.include_router(dashboard_router)  # Include the user router in the FastAPI app
 # This allows the app to handle user-related API endpoints defined in the user_router module
+app.include_router(items_router)  # Include the items router in the FastAPI app
+app.include_router(inspection_router)
+app.include_router(shipment_router)
