@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Truck, Search, Filter, MapPin } from "lucide-react";
 import { AddShipmentDialog } from "@/components/add-shipment-dialog";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function ShipmentsPage() {
   interface shipmentData {
@@ -54,6 +55,44 @@ export default function ShipmentsPage() {
     };
     fetchshipment();
   }, []);
+
+  interface shipmentStats {
+    total_shipment: number;
+    in_transit: number;
+    delivered: number;
+    delayed: number;
+  }
+
+  const [shipmentStats, setShipmentStats] = useState<shipmentStats>({
+    total_shipment: 0,
+    in_transit: 0,
+    delivered: 0,
+    delayed: 0,
+  });
+
+  useEffect(() => {
+    const fetchshipmentStats = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/shipmentInfo", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        // Map the data to the format required by the chart
+        setShipmentStats(data);
+      } catch (error) {
+        console.error("Error fetching shipment stats:", error);
+      }
+    };
+    fetchshipmentStats();
+  }, []);
+
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
@@ -82,8 +121,8 @@ export default function ShipmentsPage() {
             <Truck className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">87</div>
-            <p className="text-xs text-green-600">+12% from last month</p>
+            <div className="text-2xl font-bold text-green-800">{shipmentStats.total_shipment}</div>
+            {/* <p className="text-xs text-green-600">+12% from last month</p> */}
           </CardContent>
         </Card>
 
@@ -93,8 +132,8 @@ export default function ShipmentsPage() {
             <div className="h-4 w-4 rounded-full bg-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">24</div>
-            <p className="text-xs text-blue-600">28% of total</p>
+            <div className="text-2xl font-bold text-blue-600">{shipmentStats.in_transit}</div>
+            {/* <p className="text-xs text-blue-600">28% of total</p> */}
           </CardContent>
         </Card>
 
@@ -104,8 +143,8 @@ export default function ShipmentsPage() {
             <div className="h-4 w-4 rounded-full bg-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">58</div>
-            <p className="text-xs text-green-600">67% of total</p>
+            <div className="text-2xl font-bold text-green-800">{shipmentStats.delivered}</div>
+            {/* <p className="text-xs text-green-600">67% of total</p> */}
           </CardContent>
         </Card>
 
@@ -115,8 +154,8 @@ export default function ShipmentsPage() {
             <div className="h-4 w-4 rounded-full bg-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">5</div>
-            <p className="text-xs text-amber-600">6% of total</p>
+            <div className="text-2xl font-bold text-amber-600">{shipmentStats.delayed}</div>
+            {/* <p className="text-xs text-amber-600">6% of total</p> */}
           </CardContent>
         </Card>
       </div>
@@ -167,20 +206,15 @@ export default function ShipmentsPage() {
                   </TableCell>
                   <TableCell>{shipment.temperature}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
-                    >
-                      <MapPin className="mr-1 h-4 w-4" /> Track
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
-                    >
-                      Details
-                    </Button>
+                    <Link href={`/shipments/${shipment.trackingId}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                      >
+                        <MapPin className="mr-1 h-4 w-4" /> Track
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}

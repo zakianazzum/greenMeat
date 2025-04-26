@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Search, Filter } from "lucide-react";
 import { AddInspectionDialog } from "@/components/add-inspection-dialog";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 // Sample data for inspection reports
 // const inspections = [
@@ -244,8 +245,9 @@ export default function InspectionsPage() {
                       variant="ghost"
                       size="sm"
                       className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                      asChild
                     >
-                      View
+                      <Link href={`/inspections/${inspection.id}`}>View</Link>
                     </Button>
                     <Button
                       variant="ghost"

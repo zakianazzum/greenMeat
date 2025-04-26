@@ -6,7 +6,8 @@ from app.api.users import user_router
 from app.api.dashboard import dashboard_router
 from app.api.items import items_router  # Import the items router from the items module
 from app.api.inspection import inspection_router
-from app.api.shipment import shipment_router
+from app.api.shipments import shipment_router
+
 
 # Import the user router from the users module
 

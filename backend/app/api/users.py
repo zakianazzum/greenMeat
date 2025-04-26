@@ -39,19 +39,20 @@ user_router = (
 
 
 @user_router.get("/users")
-def get_users():  # Get all users from the database
+async def get_users():  # Get all users from the database
     # This function retrieves all users from the database and returns them in JSON format.
 
     if db is None:
         return {"error": "Database connection failed"}
-
     cursor = db.cursor()
-    cursor.execute(
-        "SELECT id, name, user_type, email, created_at, status FROM users"
-    )  # Execute the SQL query to fetch all users from the database.
-
-    result = cursor.fetchall()
-    cursor.close()
+    try:
+        cursor.execute(
+            "SELECT id, name, user_type, email, created_at, status FROM users;"
+        )
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
 
     # Format the results into the desired JSON structure.
     formatted_users = []

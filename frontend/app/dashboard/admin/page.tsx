@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -20,6 +20,14 @@ import {
 import { Tractor, ClipboardCheck, Truck, Package, Users, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { use, useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Sample data for charts
 // const batchData = [
@@ -50,8 +58,125 @@ const shipmentData = [
   { name: "Jul", completed: 60, pending: 10 },
 ];
 
+// Color palette for the failure analytics pie chart
+const FAILURE_COLORS = [
+  "#ef4444", // red-500
+  "#f97316", // orange-500
+  "#f59e0b", // amber-500
+  "#eab308", // yellow-500
+  "#84cc16", // lime-500
+  "#22c55e", // green-500
+  "#14b8a6", // teal-500
+  "#06b6d4", // cyan-500
+];
+
+// Define the interface for the criteria data
+interface QualityCriteria {
+  criteriaName: string;
+  description: string;
+  maxScore: number;
+}
+
+function QualityCriteriaTable() {
+  const [criteria, setCriteria] = useState<QualityCriteria[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCriteria = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("http://127.0.0.1:8000/criteriaInfo");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch criteria data: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setCriteria(data);
+      } catch (err) {
+        console.error("Error fetching criteria data:", err);
+        setError("Failed to load criteria data. Please try again later.");
+        // Set sample data for demonstration
+        setCriteria([
+          {
+            criteriaName: "Marbling",
+            description: "Amount and distribution of intramuscular fat",
+            maxScore: 10,
+          },
+          {
+            criteriaName: "Color",
+            description: "Lean meat color",
+            maxScore: 10,
+          },
+          {
+            criteriaName: "Texture",
+            description: "Meat firmness and feel",
+            maxScore: 10,
+          },
+          {
+            criteriaName: "Maturity",
+            description: "Age of the animal",
+            maxScore: 10,
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCriteria();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-full py-8 text-center">
+        <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+        <p className="mt-2 text-sm text-green-700">Loading criteria data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full py-4 text-center">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader className="bg-green-50">
+        <TableRow>
+          <TableHead className="w-[30%]">Criteria</TableHead>
+          <TableHead className="w-[50%]">Description</TableHead>
+          <TableHead className="w-[20%] text-right">Max Score</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {criteria.map((item, index) => (
+          <TableRow key={index} className="hover:bg-green-50">
+            <TableCell className="font-medium">{item.criteriaName}</TableCell>
+            <TableCell>{item.description}</TableCell>
+            <TableCell className="text-right">
+              <div className="inline-flex items-center justify-center h-8 w-8 bg-green-100 text-green-800 rounded-full font-medium">
+                {item.maxScore}
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
   const [totalBatches, setTotalBatches] = useState(0);
 
   useEffect(() => {
@@ -185,6 +310,74 @@ export default function Dashboard() {
     fetchbatchCountMonthly();
   }, []);
 
+  interface RegionFailureData {
+    farmRegion: string;
+    failed_batches: number;
+    failure_percentage: number;
+  }
+
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+    name,
+  }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius * 1.1;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#16a34a"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        fontSize={12}
+        fontWeight="medium"
+      >
+        {`${name}: ${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
+  };
+
+  const [failureAnalytics, setFailureAnalytics] = useState<RegionFailureData[]>([]);
+
+  useEffect(() => {
+    const fetchFailureAnalytics = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/analytics", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch analytics data");
+        }
+
+        const data = await response.json();
+        setFailureAnalytics(data);
+        setIsLoading(false); // Set loading to false after data is fetched
+      } catch (error) {
+        console.error("Error fetching failure analytics:", error);
+      }
+    };
+    fetchFailureAnalytics();
+  }, []);
+
+  // Prepare data for pie chart - we need name property for the labels
+  const pieChartData = failureAnalytics.map((item) => ({
+    name: item.farmRegion,
+    value: item.failure_percentage,
+  }));
+
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
@@ -263,7 +456,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "#f0fdf4",
                         borderColor: "#bbf7d0",
@@ -298,7 +491,7 @@ export default function Dashboard() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "#f0fdf4",
                         borderColor: "#bbf7d0",
@@ -323,7 +516,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "#f0fdf4",
                         borderColor: "#bbf7d0",
@@ -338,7 +531,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="col-span-3 border-green-200">
+            {/* <Card className="col-span-3 border-green-200">
               <CardHeader>
                 <CardTitle className="text-green-800">Recent Activity</CardTitle>
                 <CardDescription>Latest system events</CardDescription>
@@ -386,10 +579,20 @@ export default function Dashboard() {
                   </div>
                 </div>
               </CardContent>
+            </Card> */}
+
+            <Card className="col-span-3 border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-800">Grading Criteria</CardTitle>
+                <CardDescription>Standards for meat quality assessment</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <QualityCriteriaTable />
+              </CardContent>
             </Card>
           </div>
         </TabsContent>
-
+        {/* 
         <TabsContent value="analytics" className="space-y-4">
           <Card className="border-green-200">
             <CardHeader>
@@ -400,6 +603,188 @@ export default function Dashboard() {
               <p className="text-center py-6 text-muted-foreground">
                 Advanced analytics content will appear here
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent> */}
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Pie Chart Card */}
+            <Card className="border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-800">Regional Failure Distribution</CardTitle>
+                <CardDescription>Percentage of failures by farm region</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[400px] flex items-center justify-center">
+                {isLoading ? (
+                  <div className="text-center py-6 text-muted-foreground">Loading data...</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <PieChart>
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={120}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={renderCustomizedLabel}
+                      >
+                        {pieChartData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={FAILURE_COLORS[index % FAILURE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        formatter={(value: any) => [`${value}%`, "Failure Rate"]}
+                        contentStyle={{
+                          backgroundColor: "#f0fdf4",
+                          borderColor: "#bbf7d0",
+                          borderRadius: "8px",
+                        }}
+                      />
+
+                      {/* <Legend
+                        height={36}
+                        margin={{ top: 128 }}
+                        verticalAlign="bottom"
+                        formatter={(value) => <span style={{ color: "#16a34a" }}>{value}</span>}
+                      /> */}
+
+                      <Legend
+                        align="right"
+                        iconSize={12}
+                        layout="vertical"
+                        iconType="circle"
+                        verticalAlign="middle"
+                        wrapperStyle={{ paddingLeft: "20px" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Table Card */}
+            <Card className="border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-800">Failed Batches by Region</CardTitle>
+                <CardDescription>Detailed breakdown of batch failures</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="text-center py-6 text-muted-foreground">Loading data...</div>
+                ) : (
+                  <Table>
+                    <TableHeader className="bg-green-50">
+                      <TableRow>
+                        <TableHead className="w-[40%]">Region</TableHead>
+                        <TableHead className="w-[30%]">Failed Batches</TableHead>
+                        <TableHead className="w-[30%]">Failure Rate</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {failureAnalytics.map((item, index) => (
+                        <TableRow key={index} className="hover:bg-green-50">
+                          <TableCell className="font-medium">{item.farmRegion}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <span className="font-semibold text-red-600">
+                                {item.failed_batches}
+                              </span>
+                              <div
+                                className="ml-2 h-2 bg-red-200 rounded-full"
+                                style={{
+                                  width: `${Math.min(item.failed_batches * 2, 100)}px`,
+                                  backgroundColor: FAILURE_COLORS[index % FAILURE_COLORS.length],
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>{item.failure_percentage}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Additional Analytics Card */}
+          <Card className="border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800">Failure Analysis Insights</CardTitle>
+              <CardDescription>Key observations and recommendations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <h3 className="font-semibold text-amber-800 mb-2">Key Observations</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-amber-700">
+                    {failureAnalytics.length > 0 && (
+                      <>
+                        <li>
+                          {
+                            failureAnalytics.sort(
+                              (a, b) => b.failure_percentage - a.failure_percentage
+                            )[0].farmRegion
+                          }{" "}
+                          has the highest failure rate at{" "}
+                          {
+                            failureAnalytics.sort(
+                              (a, b) => b.failure_percentage - a.failure_percentage
+                            )[0].failure_percentage
+                          }
+                          %
+                        </li>
+                        <li>
+                          Total of{" "}
+                          {failureAnalytics.reduce((sum, item) => sum + item.failed_batches, 0)}{" "}
+                          failed batches across all regions
+                        </li>
+                        <li>
+                          Average failure rate:{" "}
+                          {(
+                            failureAnalytics.reduce(
+                              (sum, item) => sum + item.failure_percentage,
+                              0
+                            ) / failureAnalytics.length
+                          ).toFixed(1)}
+                          %
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h3 className="font-semibold text-green-800 mb-2">Recommendations</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-green-700">
+                    {failureAnalytics.length > 0 && (
+                      <>
+                        <li>
+                          Conduct quality audit in{" "}
+                          {
+                            failureAnalytics.sort(
+                              (a, b) => b.failure_percentage - a.failure_percentage
+                            )[0].farmRegion
+                          }{" "}
+                          region
+                        </li>
+                        <li>
+                          Review inspection protocols for regions with {">"} 10% failure rates
+                        </li>
+                        <li>
+                          Implement additional training for farm operators in high-failure regions
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

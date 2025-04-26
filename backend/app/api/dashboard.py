@@ -125,3 +125,48 @@ async def get_monthly_batch_counts():
     formatted_result = [{"month": row[0], "batch_count": row[1]} for row in result]
 
     return formatted_result
+
+
+@dashboard_router.get("/analytics")
+async def get_analytics():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT 
+					fa.farmRegion,
+					COUNT(ir.batchID) AS failed_batches,
+					ROUND((COUNT(ir.batchID) / (SELECT COUNT(*) FROM inspectionreport WHERE status = 'Fail')) * 100, 2) AS failure_percentage
+				FROM inspectionreport ir
+				JOIN meatbatch mb ON ir.batchID = mb.batchID
+				JOIN slhrecord slh ON mb.slaughterHouseId = slh.slhRecordID
+				JOIN cattle c ON slh.cattleID = c.cattleID
+				JOIN farms f ON  c.farmID = f.farmID
+				JOIN farmer fa ON  f.farmerID = fa.farmerID
+				WHERE ir.status = 'Fail'
+				GROUP BY fa.farmRegion
+				ORDER BY failure_percentage DESC; """
+        )
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error as {err}")
+    return result
+
+
+@dashboard_router.get("/criteriaInfo")
+async def get_criteria_info():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """ SELECT 
+					criteriaName,
+					description,
+					maxScore
+				FROM gradingcriteria
+				LIMIT 4;"""
+        )
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error as {err}")
+    return result
