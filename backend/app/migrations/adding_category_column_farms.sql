@@ -1,0 +1,2 @@
+ALTER TABLE farms
+ADD COLUMN category VARCHAR(50);

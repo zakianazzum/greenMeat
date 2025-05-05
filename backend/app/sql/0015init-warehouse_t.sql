@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS warehouse_t(
+	storeID INT AUTO_INCREMENT PRIMARY KEY, 
+	location VARCHAR(100),
+	capacity INT
+);

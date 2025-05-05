@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,9 +25,7 @@ import {
 import { Users, Search, Filter, MoreHorizontal } from "lucide-react";
 import { AddUserDialog } from "@/components/add-user-dialog";
 
-import { useEffect, useState } from "react";
-
-// Define the User type
+// Define types
 interface User {
   id: string;
   name: string;
@@ -36,45 +35,69 @@ interface User {
   status: string;
 }
 
-// Define the API response type
 interface ApiResponse {
   users: User[];
 }
 
+interface UserCountResponse {
+  userCounts: {
+    userType: string;
+    count: number;
+  }[];
+  totalCount: number;
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [userCounts, setUserCounts] = useState<UserCountResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("http://127.0.0.1:8000/users");
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
+        const [usersRes, countsRes] = await Promise.all([
+          fetch("http://127.0.0.1:8000/users"),
+          fetch("http://127.0.0.1:8000/userCountByType"),
+        ]);
+
+        if (!usersRes.ok || !countsRes.ok) {
+          throw new Error("One or more requests failed.");
         }
 
-        const data: ApiResponse = await response.json();
-        setUsers(data.users);
+        const usersData: ApiResponse = await usersRes.json();
+        const countsData: UserCountResponse = await countsRes.json();
+
+        setUsers(usersData.users);
+        setUserCounts(countsData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch users:", err);
-        setError("Failed to load users. Please try again later.");
+        console.error("Fetch error:", err);
+        setError("Failed to load data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchData();
   }, []);
+
+  const getUserTypeCount = (type: string) => {
+    return userCounts?.userCounts.find((item) => item.userType === type)?.count || 0;
+  };
+
+  const getPercentage = (count: number) => {
+    if (!userCounts || userCounts.totalCount === 0) return "0%";
+    return `${Math.round((count / userCounts.totalCount) * 100)}% of users`;
+  };
 
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight text-green-800">User Management</h2>
-        <AddUserDialog />
+        {/* <AddUserDialog /> */}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -98,7 +121,7 @@ export default function UsersPage() {
             <Users className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">{users.length}</div>
+            <div className="text-2xl font-bold text-green-800">{userCounts?.totalCount || 0}</div>
             <p className="text-xs text-green-600">Users in the system</p>
           </CardContent>
         </Card>
@@ -109,16 +132,8 @@ export default function UsersPage() {
             <div className="h-4 w-4 rounded-full bg-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">
-              {users.filter((user) => user.userType === "Farmer").length}
-            </div>
-            <p className="text-xs text-green-600">
-              {users.length > 0
-                ? `${Math.round(
-                    (users.filter((user) => user.userType === "Farmer").length / users.length) * 100
-                  )}% of users`
-                : "0% of users"}
-            </p>
+            <div className="text-2xl font-bold text-green-800">{getUserTypeCount("farmer")}</div>
+            <p className="text-xs text-green-600">{getPercentage(getUserTypeCount("farmer"))}</p>
           </CardContent>
         </Card>
 
@@ -129,16 +144,10 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {users.filter((user) => user.userType === "Quality Inspector").length}
+              {getUserTypeCount("qualityinspector")}
             </div>
             <p className="text-xs text-blue-600">
-              {users.length > 0
-                ? `${Math.round(
-                    (users.filter((user) => user.userType === "Quality Inspector").length /
-                      users.length) *
-                      100
-                  )}% of users`
-                : "0% of users"}
+              {getPercentage(getUserTypeCount("qualityinspector"))}
             </p>
           </CardContent>
         </Card>
@@ -149,17 +158,8 @@ export default function UsersPage() {
             <div className="h-4 w-4 rounded-full bg-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
-              {users.filter((user) => user.userType === "Retailer").length}
-            </div>
-            <p className="text-xs text-amber-600">
-              {users.length > 0
-                ? `${Math.round(
-                    (users.filter((user) => user.userType === "Retailer").length / users.length) *
-                      100
-                  )}% of users`
-                : "0% of users"}
-            </p>
+            <div className="text-2xl font-bold text-amber-600">{getUserTypeCount("retailer")}</div>
+            <p className="text-xs text-amber-600">{getPercentage(getUserTypeCount("retailer"))}</p>
           </CardContent>
         </Card>
       </div>
@@ -186,7 +186,7 @@ export default function UsersPage() {
                   <TableHead>User Type</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  {/* <TableHead className="text-right">Actions</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -202,11 +202,12 @@ export default function UsersPage() {
                     <TableCell>
                       <Badge
                         className={
-                          user.userType === "Admin"
+                          user.userType === "admin"
                             ? "bg-purple-100 text-purple-800 hover:bg-purple-200"
-                            : user.userType === "Farmer"
+                            : user.userType === "farmer"
                             ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : user.userType === "Quality Inspector"
+                            : user.userType === "quality inspector" ||
+                              user.userType === "qualityinspector"
                             ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
                             : "bg-amber-100 text-amber-800 hover:bg-amber-200"
                         }
@@ -228,7 +229,7 @@ export default function UsersPage() {
                         {user.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    {/* <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -245,7 +246,7 @@ export default function UsersPage() {
                           <DropdownMenuItem className="text-red-600">Deactivate</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

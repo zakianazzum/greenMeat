@@ -1,10 +1,17 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Search, Filter, ArrowUpDown } from "lucide-react"
-import { AddBatchDialog } from "@/components/add-batch-dialog"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { AddBatchDialog } from "@/components/add-batch-dialog";
 
 // Sample data for meat batches
 const batches = [
@@ -57,7 +64,7 @@ const batches = [
     qualityStatus: "Passed",
     reportId: "R5007",
   },
-]
+];
 
 export default function BatchesPage() {
   return (
@@ -70,7 +77,11 @@ export default function BatchesPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search batches..." className="pl-8 bg-white border-green-200" />
+          <Input
+            type="search"
+            placeholder="Search batches..."
+            className="pl-8 bg-white border-green-200"
+          />
         </div>
         <Button variant="outline" className="border-green-200">
           <Filter className="mr-2 h-4 w-4 text-green-700" /> Filter
@@ -95,7 +106,6 @@ export default function BatchesPage() {
                 </TableHead>
                 <TableHead>Average Weight</TableHead>
                 <TableHead>Quality Status</TableHead>
-                <TableHead>Report ID</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -111,19 +121,26 @@ export default function BatchesPage() {
                         batch.qualityStatus === "Passed"
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
                           : batch.qualityStatus === "Pending"
-                            ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                            : "bg-red-100 text-red-800 hover:bg-red-200"
+                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : "bg-red-100 text-red-800 hover:bg-red-200"
                       }
                     >
                       {batch.qualityStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell>{batch.reportId}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="text-green-700 hover:text-green-800 hover:bg-green-50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                    >
                       View
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-green-700 hover:text-green-800 hover:bg-green-50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
+                    >
                       Edit
                     </Button>
                   </TableCell>
@@ -134,6 +151,5 @@ export default function BatchesPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
