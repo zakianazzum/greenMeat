@@ -1,8 +1,7 @@
-INSERT IGNORE INTO QualityInspector (inspectorID, assignedZone)
+INSERT IGNORE INTO qualityinspector_t (inspectorID)
 SELECT
-	id,
-	zone
+	id
 FROM
-	Users
+	user_t
 WHERE
 	user_Type = 'qualityinspector';

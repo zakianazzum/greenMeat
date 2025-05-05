@@ -1,62 +1,78 @@
--- Insert 5 cattle per farm
-INSERT INTO Cattle (farmID, birthDate, healthStatus)
-SELECT f.farmID,
-       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 730) DAY),
-       ELT(
-         FLOOR(1 + (RAND() * 4)),
-         'Healthy',
-         'Sick',
-         'Under Observation',
-         'Vaccinated'
-       )
-FROM Farms f;
+-- Insert first animal for each active farm
+INSERT IGNORE INTO cattle_t (farmID, cattleType, age, healthStatus)
+SELECT 
+    f.farmID,
+    'beef' AS cattleType,  -- Example: Beef cattle
+    FLOOR(RAND() * 19) + 18 AS age,  -- Random age between 18 and 36 months
+    CASE
+        WHEN RAND() < 0.7 THEN 'healthy'  -- 70% chance of healthy
+        ELSE 'sick'  -- 30% chance of sick
+    END AS healthStatus
+FROM 
+    farms_t f
+WHERE 
+    f.isActive = TRUE;
 
--- Repeat 5 times
-INSERT INTO Cattle (farmID, birthDate, healthStatus)
-SELECT f.farmID,
-       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 730) DAY),
-       ELT(
-         FLOOR(1 + (RAND() * 4)),
-         'Healthy',
-         'Sick',
-         'Under Observation',
-         'Vaccinated'
-       )
-FROM Farms f;
 
-INSERT INTO Cattle (farmID, birthDate, healthStatus)
-SELECT f.farmID,
-       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 730) DAY),
-       ELT(
-         FLOOR(1 + (RAND() * 4)),
-         'Healthy',
-         'Sick',
-         'Under Observation',
-         'Vaccinated'
-       )
-FROM Farms f;
+-- Insert second animal (lamb) for each active farm
+INSERT IGNORE INTO cattle_t (farmID, cattleType, age, healthStatus)
+SELECT 
+    f.farmID,
+    'lamb' AS cattleType,
+    FLOOR(RAND() * 9) + 4 AS age,  -- Random age between 4 and 12 months
+    CASE
+        WHEN RAND() < 0.7 THEN 'healthy'
+        ELSE 'sick'
+    END AS healthStatus
+FROM 
+    farms_t f
+WHERE 
+    f.isActive = TRUE;
 
-INSERT INTO Cattle (farmID, birthDate, healthStatus)
-SELECT f.farmID,
-       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 730) DAY),
-       ELT(
-         FLOOR(1 + (RAND() * 4)),
-         'Healthy',
-         'Sick',
-         'Under Observation',
-         'Vaccinated'
-       )
-FROM Farms f;
 
-INSERT INTO Cattle (farmID, birthDate, healthStatus)
-SELECT f.farmID,
-       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 730) DAY),
-       ELT(
-         FLOOR(1 + (RAND() * 4)),
-         'Healthy',
-         'Sick',
-         'Under Observation',
-         'Vaccinated'
-       )
-FROM Farms f;
+-- Insert goat animals for each active farm
+INSERT IGNORE INTO cattle_t (farmID, cattleType, age, healthStatus)
+SELECT 
+    f.farmID,
+    'mutton' AS cattleType,
+    FLOOR(RAND() * 10) + 1 AS age,  -- Random age between 1 and 10 months
+    CASE
+        WHEN RAND() < 0.7 THEN 'healthy'  -- 70% chance of healthy
+        ELSE 'sick'  -- 30% chance of sick
+    END AS healthStatus
+FROM 
+    farms_t f
+WHERE 
+    f.isActive = TRUE;
 
+
+-- Insert turkey animals for each active farm
+INSERT IGNORE INTO cattle_t (farmID, cattleType, age, healthStatus)
+SELECT 
+    f.farmID,
+    'turkey' AS cattleType,
+    FLOOR(RAND() * 6) + 1 AS age,  -- Random age between 1 and 6 months
+    CASE
+        WHEN RAND() < 0.7 THEN 'healthy'  -- 70% chance of healthy
+        ELSE 'sick'  -- 30% chance of sick
+    END AS healthStatus
+FROM 
+    farms_t f
+WHERE 
+    f.isActive = TRUE;
+
+
+-- Insert chicken animals for each active farm
+INSERT IGNORE INTO cattle_t (farmID, cattleType, age, healthStatus)
+SELECT 
+    f.farmID,
+    'chicken' AS cattleType,
+    FLOOR(RAND() * 6) + 1 AS age,  -- Random age between 1 and 6 months
+    CASE
+        WHEN RAND() < 0.7 THEN 'healthy'  -- 70% chance of healthy
+        ELSE 'sick'  -- 30% chance of sick
+    END AS healthStatus
+FROM 
+    farms_t f
+WHERE 
+    f.isActive = TRUE;

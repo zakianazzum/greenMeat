@@ -1,26 +1,4 @@
-INSERT IGNORE INTO Sensor (location, type)
+INSERT IGNORE INTO sensor_t (type)
 VALUES
-	('Dhaka', 'Temperature Sensor'),
-	('Chittagong', 'Humidity Sensor'),
-	('Khulna', 'GPS Sensor'),
-	('Rajshahi', 'Shock Sensor'),
-	('Rangpur', 'Temperature Sensor'),
-	('Barishal', 'Humidity Sensor'),
-	('Sylhet', 'GPS Sensor'),
-	('Mymensingh', 'Shock Sensor'),
-	('Dhaka', 'Temperature Sensor'),
-	('Chittagong', 'Humidity Sensor'),
-	('Khulna', 'GPS Sensor'),
-	('Rajshahi', 'Shock Sensor'),
-	('Rangpur', 'Temperature Sensor'),
-	('Barishal', 'Humidity Sensor'),
-	('Sylhet', 'GPS Sensor'),
-	('Mymensingh', 'Shock Sensor'),
-	('Dhaka', 'Temperature Sensor'),
-	('Chittagong', 'Humidity Sensor'),
-	('Khulna', 'GPS Sensor'),
-	('Rajshahi', 'Shock Sensor'),
-	('Rangpur', 'Temperature Sensor'),
-	('Barishal', 'Humidity Sensor'),
-	('Sylhet', 'GPS Sensor'),
-	('Mymensingh', 'Shock Sensor');
+('Temperature'),
+('Humidity');

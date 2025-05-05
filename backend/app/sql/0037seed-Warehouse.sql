@@ -1,4 +1,4 @@
-INSERT IGNORE INTO Warehouse (location, capacity)
+INSERT IGNORE INTO warehouse_t (location, capacity)
 VALUES
 	('Dhaka', 5000),
 	('Chittagong', 3000),

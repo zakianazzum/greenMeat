@@ -59,7 +59,7 @@ def execute_sql_file(db_connection, file_path):
 
 def execute_all_sql_files(root_path):
     """Loops through the 'SQL' folder under the given path and executes all .sql files."""
-    sql_folder_path = os.path.join(root_path, "migrations")
+    sql_folder_path = os.path.join(root_path, "sql")
 
     print(f"SQL folder path: {sql_folder_path}")
     db = get_db_connection(False)
@@ -92,7 +92,7 @@ def execute_all_sql_files(root_path):
             print("Database connection closed.")
 
 
-sql_root_path = os.getenv("user_sql_pathW")
+sql_root_path = os.getenv("user_sql_pathL")
 
 if sql_root_path:
     execute_all_sql_files(sql_root_path)

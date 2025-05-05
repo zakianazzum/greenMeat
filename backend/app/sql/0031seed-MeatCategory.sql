@@ -1,7 +1,7 @@
-INSERT IGNORE INTO MeatCategory (categoryName)
+INSERT IGNORE INTO meatcategory_t (categoryName)
 VALUES
 	('Beef'),
 	('Chicken'),
-	('Turkey Chicken'),
+	('Turkey '),
 	('Lamb'),
 	('Mutton');

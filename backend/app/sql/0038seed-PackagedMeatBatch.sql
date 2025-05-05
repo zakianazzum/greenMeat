@@ -1,30 +1,18 @@
-INSERT IGNORE INTO
-	PackagedMeatBatch (recordID, processedWeight, packagedUnits, storeID)
+INSERT IGNORE INTO packagedmeatbatch_t (recordID, processedWeight, packagedUnits, storeID)
 SELECT
-	pr.recordID,
-	ROUND(80 + (RAND () * 120), 2) AS processedWeight, -- 80kg to 200kg
-	FLOOR(5 + RAND () * 15) AS packagedUnits, -- 5 to 20 units
-	w.storeID
+    pr.recordID,
+    -- Random processed weight between 10 and 50 kg (you can adjust this range)
+    ROUND(10 + (RAND() * 40), 2) AS processedWeight,
+    -- Random packaged units between 5 and 20 (you can adjust this range)
+    FLOOR(5 + (RAND() * 15)) AS packagedUnits,
+    -- Random storeID from warehouse in the same zone as processing plant
+    w.storeID
 FROM
-	(
-		SELECT
-			recordID
-		FROM
-			ProcessingRecord
-		ORDER BY
-			RAND ()
-		LIMIT
-			50
-	) AS pr
-	JOIN (
-		SELECT
-			storeID
-		FROM
-			Warehouse
-		ORDER BY
-			RAND ()
-		LIMIT
-			50
-	) AS w ON 1 = 1
-LIMIT
-	50;
+    processingrecord_t pr
+JOIN processingplant_t pp ON pr.plantID = pp.plantID
+JOIN warehouse_t w ON pp.location = w.location
+WHERE
+    pr.packageQuality = 'A'
+    AND pr.packagingStatus = 'successful'
+LIMIT 100;  -- Adjust the limit based on the number of records you want to insert
+

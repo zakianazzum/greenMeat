@@ -29,6 +29,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+const statusColors = {
+  Delayed: "text-amber-500",
+  "In Transit": "text-blue-500",
+  Delivered: "text-green-500",
+  Scheduled: "text-gray-500",
+};
 // Sample data for charts
 // const batchData = [
 //   { name: "Jan", value: 45 },
@@ -48,15 +54,15 @@ const qualityData = [
 
 const COLORS = ["#4ade80", "#22c55e", "#16a34a"];
 
-const shipmentData = [
-  { name: "Jan", completed: 35, pending: 5 },
-  { name: "Feb", completed: 42, pending: 8 },
-  { name: "Mar", completed: 38, pending: 6 },
-  { name: "Apr", completed: 51, pending: 10 },
-  { name: "May", completed: 45, pending: 8 },
-  { name: "Jun", completed: 57, pending: 10 },
-  { name: "Jul", completed: 60, pending: 10 },
-];
+// const shipmentData = [
+//   { name: "Jan", completed: 35, pending: 5 },
+//   { name: "Feb", completed: 42, pending: 8 },
+//   { name: "Mar", completed: 38, pending: 6 },
+//   { name: "Apr", completed: 51, pending: 10 },
+//   { name: "May", completed: 45, pending: 8 },
+//   { name: "Jun", completed: 57, pending: 10 },
+//   { name: "Jul", completed: 60, pending: 10 },
+// ];
 
 // Color palette for the failure analytics pie chart
 const FAILURE_COLORS = [
@@ -77,10 +83,17 @@ interface QualityCriteria {
   maxScore: number;
 }
 
+interface Alert {
+  status: string;
+  trackingID: number;
+  temperature: string;
+}
+
 function QualityCriteriaTable() {
-  const [criteria, setCriteria] = useState<QualityCriteria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [criteria, setCriteria] = useState<QualityCriteria[]>([]);
 
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -178,6 +191,64 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [totalBatches, setTotalBatches] = useState(0);
+
+
+  // Define the Info interface
+  interface Info {
+    month: string;
+    delivered: number;
+    delayed: number;
+  }
+  
+  const [info, setInfo] = useState<Info[]>([]);
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/deliveredVsPending");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch delivered vs pending data: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setInfo(data);
+      } catch (err) {
+        console.error("Error fetching alert data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInfo();
+  }, []);
+
+    const shipmentData = info.map((item) => ({
+      name: item.month,
+      completed: item.delivered,
+      pending: item.delayed,
+    }));
+
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/alertInfo");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch alert data: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setAlerts(data);
+      } catch (err) {
+        console.error("Error fetching alert data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
 
   useEffect(() => {
     const fetchTotalBatches = async () => {
@@ -797,33 +868,41 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  <div>
-                    <p className="text-sm font-medium">Temperature alert for Batch #1234</p>
-                    <p className="text-xs text-muted-foreground">
-                      Temperature exceeded threshold by 2°C
-                    </p>
-                  </div>
-                </div>
+                {alerts.map((alert, index) => (
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    {(alert.status === "Delayed" || alert.temperature > "4") && (
+                      <AlertTriangle
+                        className={`h-5 w-5 ${
+                          alert.temperature > "4" ? "text-red-500" : "text-amber-500"
+                        }`}
+                      />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">System Alert for #{alert.trackingID}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {alert.temperature > "4" ? (
+                          <span className="text-red-500">
+                            Temperature is critical: {alert.temperature}°C
+                          </span>
+                        ) : (
+                          `Temperature is normal: ${alert.temperature}°C`
+                        )}
+                      </p>
 
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  <div>
-                    <p className="text-sm font-medium">Delayed shipment #789</p>
-                    <p className="text-xs text-muted-foreground">
-                      Shipment is 2 hours behind schedule
-                    </p>
+                      <p className="text-xs text-muted-foreground">
+                        Status:{" "}
+                        <span
+                          className={`font-semibold ${
+                            statusColors[alert.status as keyof typeof statusColors] ||
+                            "text-gray-500"
+                          }`}
+                        >
+                          {alert.status}
+                        </span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                  <div>
-                    <p className="text-sm font-medium">Failed quality check for Batch #567</p>
-                    <p className="text-xs text-muted-foreground">Immediate attention required</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>

@@ -1,4 +1,4 @@
-INSERT IGNORE INTO Transportation (transportationType, transporterName)
+INSERT IGNORE INTO transportation_t (transportationType, transporterName)
 VALUES
 	('Truck', 'ABC Logistics'),
 	('Truck', 'XYZ Transports'),

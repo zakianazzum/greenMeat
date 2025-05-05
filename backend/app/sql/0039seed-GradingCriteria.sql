@@ -1,4 +1,4 @@
-INSERT IGNORE INTO GradingCriteria (criteriaName, description, maxScore)
+INSERT IGNORE INTO gradingcriteria_t (criteriaName, description, maxScore)
 VALUES
 	(
 		'Marbling',

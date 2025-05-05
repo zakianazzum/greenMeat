@@ -1,4 +1,4 @@
-INSERT IGNORE INTO ProcessingPlant (plantName, location, status)
+INSERT IGNORE INTO processingplant_t (plantName, location, status)
 VALUES
 	(
 		'Meat Processing Plant A',

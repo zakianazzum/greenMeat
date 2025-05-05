@@ -54,7 +54,7 @@ async def get_active_farms():
 
     cursor = db.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) AS active_farms FROM Farms WHERE isActive = 1;")
+        cursor.execute("SELECT COUNT(*) AS active_farms FROM farms WHERE isActive = 1;")
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
@@ -70,7 +70,7 @@ async def get_pending_inspections():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT COUNT(*) AS  pending_inspections FROM InspectionReport WHERE status = 'Recheck';"
+            "SELECT COUNT(*) AS  pending_inspections FROM inspectionreport WHERE status = 'Recheck';"
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -86,7 +86,7 @@ async def get_active_shipment():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT COUNT(*) AS active_shipment FROM ShipmentTracking WHERE status = 'In Transit';"
+            "SELECT COUNT(*) AS active_shipment FROM shipmenttracking WHERE status = 'In Transit';"
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -164,6 +164,47 @@ async def get_criteria_info():
 					maxScore
 				FROM gradingcriteria
 				LIMIT 4;"""
+        )
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error as {err}")
+    return result
+
+
+@dashboard_router.get("/alertInfo")
+async def get_alert_info():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT trackingID, temperature, status
+               FROM shipmenttracking 
+               WHERE temperature > 4.0 OR status = 'Delayed';"""
+        )
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error as {err}")
+    return result 
+
+@dashboard_router.get("/deliveredVsPending")
+async def get_delivered_vs_pending():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT
+					DATE_FORMAT(arrivalDate, '%M') AS month,
+					SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS delivered,
+					SUM(CASE WHEN status = 'delayed' THEN 1 ELSE 0 END) AS `delayed`
+				FROM
+					shipmenttracking
+				WHERE
+					arrivalDate IS NOT NULL
+					AND YEAR(arrivalDate) = 2025
+				GROUP BY
+					MONTH(arrivalDate)
+				ORDER BY
+					MONTH(arrivalDate);"""
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:

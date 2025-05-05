@@ -1,8 +1,7 @@
-INSERT IGNORE INTO Farmer (farmerID, farmRegion)
+INSERT IGNORE INTO farmer_t (farmerID)
 SELECT
-	id,
-	zone
+	id
 FROM
-	Users
+	user_t
 WHERE
 	user_Type = 'farmer';

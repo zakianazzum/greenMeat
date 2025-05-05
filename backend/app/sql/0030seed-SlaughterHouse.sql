@@ -1,4 +1,4 @@
-INSERT IGNORE INTO SlaughterHouse (name, zone)
+INSERT IGNORE INTO slaughterhouse_t (name, zone)
 VALUES
 	('SlaughterHouse-1', 'Barishal'),
 	('SlaughterHouse-2', 'Barishal'),

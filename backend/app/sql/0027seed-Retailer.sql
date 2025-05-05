@@ -1,8 +1,7 @@
-INSERT IGNORE INTO Retailer (retailerId, zone)
+INSERT IGNORE INTO retailer_t (retailerId)
 SELECT
-	id,
-	zone
+	id
 FROM
-	Users
+	user_t
 WHERE
 	user_Type = 'retailer';
