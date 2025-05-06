@@ -1,9 +1,17 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +19,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Factory, Search, Filter, MoreHorizontal, Package } from "lucide-react"
-import { AddProcessingRecordDialog } from "@/components/add-processing-record-dialog"
-import { AddPlantDialog } from "@/components/add-plant-dialog"
+} from "@/components/ui/dropdown-menu";
+import { Factory, Search, Filter, MoreHorizontal, Package } from "lucide-react";
+import { AddProcessingRecordDialog } from "@/components/add-processing-record-dialog";
+import { AddPlantDialog } from "@/components/add-plant-dialog";
+import { useEffect, useState } from "react";
 
 // Sample data for processing plants
 const plants = [
@@ -58,7 +67,7 @@ const plants = [
     recordCount: 18,
     status: "Active",
   },
-]
+];
 
 // Sample data for processing records
 const records = [
@@ -116,9 +125,125 @@ const records = [
     packageQuantity: 60,
     packagingDate: "2023-07-16",
   },
-]
+];
+
+interface ProcessingData {
+  plantID: number;
+  plantName: string;
+  location: string;
+  records: number;
+  status: string;
+}
+
+interface totalProcessingPlant {
+  total_processing_plant: number;
+}
 
 export default function ProcessingPage() {
+
+  const [processingData, setProcessingData] = useState<ProcessingData[]>([]);
+
+  useEffect(() => {
+    const fetchProcessingData= async () => {
+      try {
+        const response = await fetch("http://localhost:8000/processingPlant", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        // Map the data to the format required by the chart
+        setProcessingData(data);
+      } catch (error) {
+        console.error("Error fetching item count:", error);
+      }
+    };
+    fetchProcessingData();
+  }, []);
+
+    const [totalActiveProcessingPlant, setTotalActiveProcessingPlant] = useState(0);
+
+    useEffect(() => {
+      const fetchTotalActiveTotalProcessingPlant = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/activeProcessingPlant", {
+            method: "GET",
+            headers: {
+              contenttype: "application/json",
+            },
+          });
+
+          console.log(response);
+
+          const data = await response.json();
+
+          console.log(data);
+
+          setTotalActiveProcessingPlant(data.active_processing_plant);
+        } catch (error) {
+          console.error("Error fetching total active farms:", error);
+        }
+      };
+      fetchTotalActiveTotalProcessingPlant();
+    }, []);
+
+  const [totalProcessingPlant, setTotalProcessingPlant] = useState<totalProcessingPlant>();
+  
+	useEffect(() => {
+	  const fetchTotalProcessingPlant = async () => {
+		try {
+		  const response = await fetch("http://localhost:8000/totalProcessingPlant", {
+        method: "GET",
+        headers: {
+          contenttype: "application/json",
+        },
+      });
+  
+		  console.log(response);
+  
+		  const data = await response.json();
+  
+		  console.log(data);
+  
+		  setTotalProcessingPlant(data);
+		} catch (error) {
+		  console.error("Error fetching total active farms:", error);
+		}
+	  };
+	  fetchTotalProcessingPlant();
+	}, []);
+
+    const [totalRecords, setTotalRecords] = useState(0);
+
+    useEffect(() => {
+      const fetchTotalRecords = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/totalProcessingRecords", {
+            method: "GET",
+            headers: {
+              contenttype: "application/json",
+            },
+          });
+
+          console.log(response);
+
+          const data = await response.json();
+
+          console.log(data);
+
+          setTotalRecords(data.total_processing_records);
+        } catch (error) {
+          console.error("Error fetching total active farms:", error);
+        }
+      };
+      fetchTotalRecords();
+    }, []);
+
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
@@ -136,7 +261,11 @@ export default function ProcessingPage() {
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search plants..." className="pl-8 bg-white border-green-200" />
+              <Input
+                type="search"
+                placeholder="Search plants..."
+                className="pl-8 bg-white border-green-200"
+              />
             </div>
             <Button variant="outline" className="border-green-200">
               <Filter className="mr-2 h-4 w-4 text-green-700" /> Filter
@@ -151,8 +280,9 @@ export default function ProcessingPage() {
                 <Factory className="h-4 w-4 text-green-700" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-800">5</div>
-                <p className="text-xs text-green-600">Processing capacity: 1,200 units/day</p>
+                <div className="text-2xl font-bold text-green-800">
+                  {totalProcessingPlant?.total_processing_plant}
+                </div>
               </CardContent>
             </Card>
 
@@ -162,7 +292,9 @@ export default function ProcessingPage() {
                 <div className="h-4 w-4 rounded-full bg-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-800">4</div>
+                <div className="text-2xl font-bold text-green-800">
+                  {totalActiveProcessingPlant}
+                </div>
                 <p className="text-xs text-green-600">80% operational</p>
               </CardContent>
             </Card>
@@ -173,7 +305,7 @@ export default function ProcessingPage() {
                 <Package className="h-4 w-4 text-green-700" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-800">103</div>
+                <div className="text-2xl font-bold text-green-800">{totalRecords}</div>
                 <p className="text-xs text-green-600">+15 this week</p>
               </CardContent>
             </Card>
@@ -191,28 +323,26 @@ export default function ProcessingPage() {
                     <TableHead className="w-[80px]">Plant ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Zone</TableHead>
-                    <TableHead>Size</TableHead>
                     <TableHead>Records</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {plants.map((plant) => (
-                    <TableRow key={plant.id} className="hover:bg-green-50">
-                      <TableCell className="font-medium">{plant.id}</TableCell>
-                      <TableCell>{plant.name}</TableCell>
-                      <TableCell>{plant.zone}</TableCell>
-                      <TableCell>{plant.processSize}</TableCell>
-                      <TableCell>{plant.recordCount}</TableCell>
+                  {processingData.map((plant) => (
+                    <TableRow key={plant.plantID} className="hover:bg-green-50">
+                      <TableCell className="font-medium">{plant.plantID}</TableCell>
+                      <TableCell>{plant.plantName}</TableCell>
+                      <TableCell>{plant.location}</TableCell>
+                      <TableCell>{plant.records}</TableCell>
                       <TableCell>
                         <Badge
                           className={
-                            plant.status === "Active"
+                            plant.status === "Currently Processing"
                               ? "bg-green-100 text-green-800 hover:bg-green-200"
-                              : plant.status === "Maintenance"
-                                ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                                : "bg-red-100 text-red-800 hover:bg-red-200"
+                              : plant.status === "Under Maintenance"
+                              ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                              : "bg-red-100 text-red-800 hover:bg-red-200"
                           }
                         >
                           {plant.status}
@@ -232,7 +362,9 @@ export default function ProcessingPage() {
                             <DropdownMenuItem>Edit Plant</DropdownMenuItem>
                             <DropdownMenuItem>View Records</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-amber-600">Set Maintenance</DropdownMenuItem>
+                            <DropdownMenuItem className="text-amber-600">
+                              Set Maintenance
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -248,7 +380,11 @@ export default function ProcessingPage() {
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search records..." className="pl-8 bg-white border-green-200" />
+              <Input
+                type="search"
+                placeholder="Search records..."
+                className="pl-8 bg-white border-green-200"
+              />
             </div>
             <Button variant="outline" className="border-green-200">
               <Filter className="mr-2 h-4 w-4 text-green-700" /> Filter
@@ -325,8 +461,8 @@ export default function ProcessingPage() {
                             record.packagingStatus === "Completed"
                               ? "bg-green-100 text-green-800 hover:bg-green-200"
                               : record.packagingStatus === "In Progress"
-                                ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                                : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                              ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                              : "bg-amber-100 text-amber-800 hover:bg-amber-200"
                           }
                         >
                           {record.packagingStatus}
@@ -348,7 +484,9 @@ export default function ProcessingPage() {
                             <DropdownMenuItem>Edit Record</DropdownMenuItem>
                             <DropdownMenuItem>Update Status</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">Delete Record</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              Delete Record
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -361,6 +499,5 @@ export default function ProcessingPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-
