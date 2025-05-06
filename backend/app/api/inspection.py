@@ -27,15 +27,14 @@ inspection_router = APIRouter()
 
 @inspection_router.get("/inspectionReport")
 async def get_inspection_report():
-
     cursor = db.cursor()
     try:
         cursor.execute(
-					"""SELECT ir.reportID,gr.batchID, gr.inspectorID, ir.inspectionDate, ir.totalScore, status, remarks
-					FROM inspectionreport_t ir
-					JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
-					WHERE YEAR(inspectionDate) IN (2024, 2025)
-					ORDER BY YEAR(inspectionDate) DESC, inspectionDate DESC;  """
+            """SELECT ir.reportID, gr.gRecordID, gr.batchID, gr.inspectorID, ir.inspectionDate, ir.totalScore, status, remarks, ir.gradeID
+            FROM inspectionreport_t ir
+            JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
+            WHERE YEAR(inspectionDate) IN (2024, 2025)
+            ORDER BY YEAR(inspectionDate) DESC, inspectionDate DESC;  """
         )
         result = cursor.fetchall()
     except mysql.connector.error as err:
@@ -45,12 +44,14 @@ async def get_inspection_report():
     formatted_result = [
         {
             "id": row[0],
-            "batchId": row[1],
-            "inspectorId": row[2],
-            "date": row[3],
-            "score": row[4],
-            "status": row[5],
-            "remarks": row[6],
+            "gRecordID": row[1],
+            "batchId": row[2],
+            "inspectorId": row[3],
+            "date": row[4],
+            "score": row[5],
+            "status": row[6],
+            "remarks": row[7],
+            "gradeID": row[8],
         }
         for row in result
     ]
@@ -105,9 +106,10 @@ async def get_inspection_report(report_id: int):
     try:
         query = """
             SELECT 
-                g.criteriaID,
                 c.criteriaName,
-                g.score
+                g.score,
+                c.description
+                
             FROM 
                 inspectionreport_t AS r
             JOIN 
@@ -168,48 +170,102 @@ async def create_inspection_report(request: Request):
     cursor = db.cursor()
     try:
         data = await request.json()
-        batchID = data.get("batchID")
-        inspectionID = data.get("inspectorID")
-        inspectionDate = data.get("inspectionDate")
-        gradingScore = data.get("gradingScore")
+
+        # Extract required fields from request
+        g_record_id = data.get("gRecordID")
+        inspection_date = data.get("inspectionDate")
+        total_score = data.get("totalScore")
         status = data.get("status")
         remarks = data.get("remarks")
+        grade_id = data.get("gradeID")
 
-        # Fetch gradeID from meatbatch table using batchID
+        # Validate required fields
+        if not all([g_record_id, inspection_date, total_score, status, grade_id]):
+            raise HTTPException(status_code=400, detail="Missing required fields")
+
+        # Insert new inspection report
+        query = """
+            INSERT INTO inspectionreport_t 
+            (gRecordID, inspectionDate, totalScore, status, remarks, gradeID)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
         cursor.execute(
-            """
-            SELECT gradeID FROM meatbatch_t WHERE batchID = %s;
-            """,
-            (batchID,),
+            query,
+            (g_record_id, inspection_date, total_score, status, remarks, grade_id),
         )
-        grade_result = cursor.fetchone()
 
-        if not grade_result:
-            raise HTTPException(
-                status_code=404, detail="Batch not found or no gradeID available"
-            )
-
-        gradeID = grade_result[0]
-
-        # Insert the new inspection report into the database
-        cursor.execute(
-            """
-            INSERT INTO inspectionreport (inspectionID, batchID,  inspectionDate, gradingScore, status, remarks, gradeID)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-            """,
-            (
-                inspectionID,
-                batchID,
-                inspectionDate,
-                gradingScore,
-                status,
-                remarks,
-                gradeID,
-            ),
-        )
         db.commit()
+        new_report_id = cursor.lastrowid
 
-        return {"message": "Inspection report created successfully"}
+        return {
+            "message": "Inspection report created successfully",
+            "reportID": new_report_id,
+        }
+
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
+
+
+@inspection_router.put("/inspectionReport/{report_id}")
+async def update_inspection_report(report_id: int, request: Request):
+    cursor = db.cursor()
+    try:
+        data = await request.json()
+
+        # Extract fields from request
+        inspection_date = data.get("inspectionDate")
+        total_score = data.get("totalScore")
+        status = data.get("status")
+        remarks = data.get("remarks")
+        grade_id = data.get("gradeID")
+
+        # Validate required fields
+        if not all([inspection_date, total_score, status, grade_id]):
+            raise HTTPException(status_code=400, detail="Missing required fields")
+
+        # Update inspection report
+        query = """
+            UPDATE inspectionreport_t 
+            SET inspectionDate = %s,
+                totalScore = %s,
+                status = %s,
+                remarks = %s,
+                gradeID = %s
+            WHERE reportID = %s
+        """
+        cursor.execute(
+            query, (inspection_date, total_score, status, remarks, grade_id, report_id)
+        )
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Inspection report not found")
+
+        db.commit()
+        return {"message": "Inspection report updated successfully"}
+
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
+
+
+@inspection_router.delete("/inspectionReport/{report_id}")
+async def delete_inspection_report(report_id: int):
+    cursor = db.cursor()
+    try:
+        # Delete inspection report
+        query = "DELETE FROM inspectionreport_t WHERE reportID = %s"
+        cursor.execute(query, (report_id,))
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Inspection report not found")
+
+        db.commit()
+        return {"message": "Inspection report deleted successfully"}
 
     except mysql.connector.Error as err:
         db.rollback()

@@ -12,10 +12,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardCheck, Search, Filter } from "lucide-react";
+import { ClipboardCheck, Search, Filter, Plus } from "lucide-react";
 import { AddInspectionDialog } from "@/components/add-inspection-dialog";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { EditInspectionDialog } from "@/components/edit-inspection-dialog";
+import { DeleteInspectionDialog } from "@/components/delete-inspection-dialog";
 
 // Sample data for inspection reports
 // const inspections = [
@@ -78,44 +81,54 @@ import Link from "next/link";
 export default function InspectionsPage() {
   interface inspectionData {
     id: number;
+    gRecordID: number;
     batchId: number;
     inspectorId: number;
     date: string;
     score: number;
     status: string;
     remarks: string;
+    gradeID?: number;
   }
 
   const [inspection, setInspection] = useState<inspectionData[]>([]);
+  const router = useRouter();
+
+  const fetchinspection = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/inspectionReport", {
+        method: "GET",
+        headers: {
+          contenttype: "application/json",
+        },
+      });
+
+      const data = await response.json();
+      setInspection(data);
+    } catch (error) {
+      console.error("Error fetching inspection report:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchinspection = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/inspectionReport", {
-          method: "GET",
-          headers: {
-            contenttype: "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        console.log(data);
-
-        // Map the data to the format required by the chart
-        setInspection(data);
-      } catch (error) {
-        console.error("Error fetching inspection report:", error);
-      }
-    };
     fetchinspection();
   }, []);
+
+  const handleUpdate = () => {
+    fetchinspection(); // Refresh the list after update
+  };
+
+  const handleDelete = () => {
+    fetchinspection(); // Refresh the list after delete
+  };
 
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-green-800">Quality Inspections</h2>
-        <AddInspectionDialog />
+        <h2 className="text-3xl font-bold tracking-tight text-green-800">Inspections</h2>
+        <Button onClick={() => router.push("/inspections/new")}>
+          <Plus className="mr-2 h-4 w-4" /> New Inspection
+        </Button>
       </div>
 
       <div className="flex items-center space-x-2">
@@ -230,8 +243,8 @@ export default function InspectionsPage() {
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
                           : inspection.status === "Satisfactory"
                           ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-						  : inspection.status === "Passed with minor issues"
-						  ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : inspection.status === "Passed with minor issues"
+                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
                           : "bg-red-100 text-red-800 hover:bg-red-200"
                       }
                     >
@@ -250,13 +263,19 @@ export default function InspectionsPage() {
                     >
                       <Link href={`/inspections/${inspection.id}`}>View</Link>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-green-700 hover:text-green-800 hover:bg-green-50"
-                    >
-                      Edit
-                    </Button>
+                    <EditInspectionDialog
+                      inspection={{
+                        id: inspection.id,
+                        gRecordID: inspection.gRecordID,
+                        date: inspection.date,
+                        score: inspection.score,
+                        status: inspection.status,
+                        remarks: inspection.remarks,
+                        gradeID: inspection.gradeID || 0,
+                      }}
+                      onUpdate={handleUpdate}
+                    />
+                    <DeleteInspectionDialog inspectionId={inspection.id} onDelete={handleDelete} />
                   </TableCell>
                 </TableRow>
               ))}

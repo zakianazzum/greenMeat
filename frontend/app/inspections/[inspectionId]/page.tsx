@@ -89,15 +89,11 @@ interface reportDetails {
   averageWeight: number;
   productionDate: string;
   gradeDescription: string;
-
-
-  criteria: [
-    {
-      criteriaName: string;
-      criteriaDescription: string;
-      score: number;
-    }
-  ];
+  criteria: Array<{
+    criteriaName: string;
+    score: number;
+    description: string;
+  }>;
 }
 
 export default function InspectionReportPage() {
@@ -124,10 +120,29 @@ export default function InspectionReportPage() {
 
         const data = await response.json();
 
-        console.log(data);
+        // Fetch criteria information
+        const criteriaResponse = await fetch(
+          `http://127.0.0.1:8000/criteriaInfo/${pathname.split("/").pop()}`,
+          {
+            method: "GET",
+            headers: {
+              contenttype: "application/json",
+            },
+          }
+        );
+
+        const criteriaData = await criteriaResponse.json();
+
+        // Combine the data
+        const combinedData = {
+          ...data,
+          criteria: criteriaData,
+        };
+
+        console.log(combinedData);
 
         setLoading(false);
-        setReportDetails(data);
+        setReportDetails(combinedData);
       } catch (error) {
         console.error("Error fetching inspection report:", error);
       }
@@ -390,13 +405,13 @@ export default function InspectionReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {reportDetails.criteria.map((criteria, index) => (
+                  {reportDetails?.criteria?.map((criteria, index) => (
                     <tr key={index} className="border-t border-green-100">
                       <td className="p-4">{criteria.criteriaName}</td>
                       <td className="p-4">
                         <Badge>{criteria.score}</Badge>
                       </td>
-                      <td className="p-4 text-sm text-gray-600">{criteria.criteriaDescription}</td>
+                      <td className="p-4 text-sm text-gray-600">{criteria.description}</td>
                     </tr>
                   ))}
                 </tbody>
