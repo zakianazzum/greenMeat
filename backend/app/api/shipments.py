@@ -39,15 +39,16 @@ async def get_tracking_info():
     				st.depertureDate,
     				st.arrivalDate,
     				st.status,
-    				st.temperature,
+    				sd.temperature,
     				st.longitude,
     				st.latitude,
     				w.location AS origin,
     				u.zone AS destination
-				FROM shipmenttracking st
-				JOIN packagedmeatbatch pmb ON st.packageID = pmb.packageID
-				JOIN warehouse w ON pmb.storeID = w.storeID
-				JOIN users u ON st.retailerID = u.id
+				FROM shipmenttracking_t st
+                JOIN sensordata_t sd ON st.trackingID = sd.trackingID
+				JOIN packagedmeatbatch_t pmb ON st.packageID = pmb.packageID
+				JOIN warehouse_t w ON pmb.storeID = w.storeID
+				JOIN user_t u ON st.retailerID = u.id
 				WHERE YEAR(st.depertureDate) IN (2024, 2025)
 				ORDER BY YEAR(st.depertureDate) DESC, st.depertureDate DESC;"""
         )
@@ -85,13 +86,13 @@ async def get_shipment_by_location():
 					u.zone AS destination,
 					COUNT(*) AS shipment_count,
 					ROUND((COUNT(*) / total.total_shipments) * 100, 2) AS shipment_percentage
-				FROM shipmenttracking st
-				JOIN packagedmeatbatch pmb ON st.packageID = pmb.packageID
-				JOIN warehouse w ON pmb.storeID = w.storeID
-				JOIN users u ON st.retailerID = u.id
+				FROM shipmenttracking_t st
+				JOIN packagedmeatbatch_t pmb ON st.packageID = pmb.packageID
+				JOIN warehouse_t w ON pmb.storeID = w.storeID
+				JOIN user_t u ON st.retailerID = u.id
 				JOIN (
 					SELECT COUNT(*) AS total_shipments
-					FROM shipmenttracking
+					FROM shipmenttracking_t
 					WHERE YEAR(depertureDate) IN (2024, 2025)
 				) AS total
 				WHERE YEAR(st.depertureDate) IN (2024, 2025)
@@ -116,7 +117,7 @@ async def get_shipment_info():
 					COUNT(CASE WHEN status = 'In Transit' THEN 1 END) AS 'In Transit',
 					COUNT(CASE WHEN status = 'Delivered' THEN 1 END) AS 'Delivered',
 					COUNT(CASE WHEN status = 'Delayed' THEN 1 END) AS 'Delayed'    
-				FROM shipmenttracking; """
+				FROM shipmenttracking_t; """
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:

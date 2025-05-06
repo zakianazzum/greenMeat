@@ -382,10 +382,38 @@ export default function Dashboard() {
   }, []);
 
   interface RegionFailureData {
-    farmRegion: string;
+    zone: string;
     failed_batches: number;
     failure_percentage: number;
   }
+
+
+	 interface Quality {
+     name: string;
+     value: number;
+   }
+    const [quality, setquality] = useState<Quality[]>([]);
+    useEffect(() => {
+      const fetchQuality = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/qualityDistribution");
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch quality distribution data: ${response.status}`);
+          }
+
+          const data = await response.json();
+          setquality(data);
+        } catch (err) {
+          console.error("Error fetching quality data:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchQuality();
+    }, []);
+
 
   const renderCustomizedLabel = ({
     cx,
@@ -445,7 +473,7 @@ export default function Dashboard() {
 
   // Prepare data for pie chart - we need name property for the labels
   const pieChartData = failureAnalytics.map((item) => ({
-    name: item.farmRegion,
+    name: item.zone,
     value: item.failure_percentage,
   }));
 
@@ -549,7 +577,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={qualityData}
+                      data={quality}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -558,7 +586,7 @@ export default function Dashboard() {
                       dataKey="value"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {qualityData.map((entry, index) => (
+                      {quality.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -759,7 +787,7 @@ export default function Dashboard() {
                     <TableBody>
                       {failureAnalytics.map((item, index) => (
                         <TableRow key={index} className="hover:bg-green-50">
-                          <TableCell className="font-medium">{item.farmRegion}</TableCell>
+                          <TableCell className="font-medium">{item.zone}</TableCell>
                           <TableCell>
                             <div className="flex items-center">
                               <span className="font-semibold text-red-600">
@@ -801,7 +829,7 @@ export default function Dashboard() {
                           {
                             failureAnalytics.sort(
                               (a, b) => b.failure_percentage - a.failure_percentage
-                            )[0].farmRegion
+                            )[0].zone
                           }{" "}
                           has the highest failure rate at{" "}
                           {
@@ -841,7 +869,7 @@ export default function Dashboard() {
                           {
                             failureAnalytics.sort(
                               (a, b) => b.failure_percentage - a.failure_percentage
-                            )[0].farmRegion
+                            )[0].zone
                           }{" "}
                           region
                         </li>

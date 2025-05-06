@@ -191,7 +191,7 @@ export default function ItemsPage() {
             </TableHeader>
             <TableBody>
               {itemCatalog.map((item) => (
-                <TableRow key={item.id} className="hover:bg-green-50">
+                <TableRow key={`${item.id}-${item.itemType}`} className="hover:bg-green-50">
                   <TableCell className="font-medium">{item.id}</TableCell>
                   <TableCell>{item.itemType}</TableCell>
                   <TableCell>{item.slaughterHname}</TableCell>

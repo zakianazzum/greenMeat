@@ -7,6 +7,7 @@ from app.api.dashboard import dashboard_router
 from app.api.items import items_router  # Import the items router from the items module
 from app.api.inspection import inspection_router
 from app.api.shipments import shipment_router
+from app.api.farms import farms_router  # Import the farms router from the farms module
 
 
 # Import the user router from the users module
@@ -43,3 +44,4 @@ app.include_router(dashboard_router)  # Include the user router in the FastAPI a
 app.include_router(items_router)  # Include the items router in the FastAPI app
 app.include_router(inspection_router)
 app.include_router(shipment_router)
+app.include_router(farms_router)  # Include the farms router in the FastAPI app

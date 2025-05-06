@@ -32,7 +32,7 @@ async def get_meatBatch_count():
 
     cursor = db.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) AS total_meat_batch FROM meatbatch;")
+        cursor.execute("SELECT COUNT(*) AS total_meat_batch FROM meatbatch_t;")
 
         result = cursor.fetchall()  # Fetch all the results
     except mysql.connector.Error as err:
@@ -54,7 +54,7 @@ async def get_active_farms():
 
     cursor = db.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) AS active_farms FROM farms WHERE isActive = 1;")
+        cursor.execute("SELECT COUNT(*) AS active_farms FROM farms_t WHERE isActive = 1;")
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
@@ -70,7 +70,7 @@ async def get_pending_inspections():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT COUNT(*) AS  pending_inspections FROM inspectionreport WHERE status = 'Recheck';"
+            "SELECT COUNT(*) AS  pending_inspections FROM inspectionreport_t WHERE status = 'Satisfactory';"
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -86,7 +86,7 @@ async def get_active_shipment():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT COUNT(*) AS active_shipment FROM shipmenttracking WHERE status = 'In Transit';"
+            "SELECT COUNT(*) AS active_shipment FROM shipmenttracking_t WHERE status = 'In Transit';"
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -106,7 +106,7 @@ async def get_monthly_batch_counts():
                		MONTHNAME(productionDate) AS month,
                     COUNT(batchID) AS batch_count
                 FROM
-                    meatbatch
+                    meatbatch_t
                 WHERE
                     YEAR(productionDate) = 2024
                 GROUP BY
@@ -133,17 +133,15 @@ async def get_analytics():
     try:
         cursor.execute(
             """SELECT 
-					fa.farmRegion,
-					COUNT(ir.batchID) AS failed_batches,
-					ROUND((COUNT(ir.batchID) / (SELECT COUNT(*) FROM inspectionreport WHERE status = 'Fail')) * 100, 2) AS failure_percentage
-				FROM inspectionreport ir
-				JOIN meatbatch mb ON ir.batchID = mb.batchID
-				JOIN slhrecord slh ON mb.slaughterHouseId = slh.slhRecordID
-				JOIN cattle c ON slh.cattleID = c.cattleID
-				JOIN farms f ON  c.farmID = f.farmID
-				JOIN farmer fa ON  f.farmerID = fa.farmerID
-				WHERE ir.status = 'Fail'
-				GROUP BY fa.farmRegion
+					sl.zone,
+					COUNT(gr.batchID) AS failed_batches,
+					ROUND((COUNT(gr.batchID) / (SELECT COUNT(*) FROM inspectionreport_t WHERE status = 'Rejected')) * 100, 2) AS failure_percentage
+				FROM inspectionreport_t ir
+				JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
+				JOIN meatbatch_t mb ON gr.batchID = mb.batchID
+				JOIN slaughterhouse_t sl ON mb.slaughterHouseId = sl.slaughterHouseId
+				WHERE ir.status = 'Rejected'
+				GROUP BY sl.zone
 				ORDER BY failure_percentage DESC; """
         )
         result = cursor.fetchall()
@@ -162,8 +160,7 @@ async def get_criteria_info():
 					criteriaName,
 					description,
 					maxScore
-				FROM gradingcriteria
-				LIMIT 4;"""
+				FROM gradingcriteria_t;"""
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -177,15 +174,38 @@ async def get_alert_info():
     cursor = db.cursor(dictionary=True)
     try:
         cursor.execute(
-            """SELECT trackingID, temperature, status
-               FROM shipmenttracking 
-               WHERE temperature > 4.0 OR status = 'Delayed';"""
+            """ SELECT spt.trackingID, sd.temperature, spt.status
+				FROM sensordata_t sd
+				JOIN shipmenttracking_t spt ON sd.trackingID=spt.trackingID
+				WHERE
+					sd.temperature>4 OR spt.status = 'Delayed';"""
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
         raise HTTPException(status_code=500, detail=f"Database error as {err}")
     return result 
+
+
+@dashboard_router.get("/qualityDistribution")
+async def get_quality_distribution():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute(
+					"""SELECT 
+							mg.gradeName AS name,
+							(COUNT(ir.reportID) / (SELECT COUNT(*) FROM inspectionreport_t) * 100) AS value
+						FROM inspectionreport_t ir
+						JOIN meatgrade_t mg ON ir.gradeID = mg.gradeID
+						GROUP BY mg.gradeID;"""
+		)
+        result = cursor.fetchall()
+    except mysql.connector.Error as err:
+        cursor.close()
+        raise HTTPException(status_code=500, detail=f"Database error as {err}")
+    return result
+        
+
 
 @dashboard_router.get("/deliveredVsPending")
 async def get_delivered_vs_pending():
@@ -197,7 +217,7 @@ async def get_delivered_vs_pending():
 					SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS delivered,
 					SUM(CASE WHEN status = 'delayed' THEN 1 ELSE 0 END) AS `delayed`
 				FROM
-					shipmenttracking
+					shipmenttracking_t
 				WHERE
 					arrivalDate IS NOT NULL
 					AND YEAR(arrivalDate) = 2025

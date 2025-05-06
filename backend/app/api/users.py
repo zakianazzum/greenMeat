@@ -47,7 +47,7 @@ async def get_users():  # Get all users from the database
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT id, name, user_type, email, created_at, status FROM users;"
+            "SELECT id, name, user_type, email, created_at, status FROM user_t;"
         )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
@@ -86,7 +86,7 @@ async def create_user(request: Request):
     print(data)
     try:
         cursor = db.cursor()
-        sql = "INSERT IGNORE INTO users (name, user_type, password, email, zone) VALUES (%s, %s, %s, %s, %s)"
+        sql = "INSERT IGNORE INTO user_t (name, user_type, password, email, zone) VALUES (%s, %s, %s, %s, %s)"
         val = (
             data["name"],
             data["user_type"],
@@ -115,7 +115,7 @@ async def login(request: Request):
     try:
         cursor = db.cursor()
         cursor.execute(
-            "SELECT id, name, email, user_type FROM users WHERE email = %s AND password = %s",
+            "SELECT id, name, email, user_type FROM user_t WHERE email = %s AND password = %s",
             (data["email"], data["password"]),
         )
         result = cursor.fetchone()
@@ -158,7 +158,7 @@ async def get_user_counts_by_type():
     cursor = db.cursor()
     try:
         cursor.execute(
-            "SELECT user_type, COUNT(*) AS count FROM users WHERE user_type != 'admin' GROUP BY user_type;"
+            "SELECT user_type, COUNT(*) AS count FROM user_t WHERE user_type != 'admin' GROUP BY user_type;"
         )
 
         result = cursor.fetchall()  # Fetch all the results

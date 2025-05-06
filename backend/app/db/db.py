@@ -22,7 +22,7 @@ def get_db_connection(
                 host="localhost",
                 user="root",
                 password="",
-                database="GreenMeat",
+                database="greenmeat",
             )
 
         return db

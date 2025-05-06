@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,43 +12,129 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Loader2, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
+interface Category {
+  categoryID: number;
+}
+
+interface SlaughterHouse {
+  slaughterHouseId: number;
+}
 
 export function AddItemDialog() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date>();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [slaughterhouses, setSlaughterhouses] = useState<SlaughterHouse[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSlaughterhouses, setLoadingSlaughterhouses] = useState(false);
+
   const [formData, setFormData] = useState({
-    itemType: "",
-    farmId: "",
-    category: "",
-    idealTemperature: "",
-    description: "",
-  })
+    categoryID: "",
+    slaughterhouseID: "",
+    productionDate: "",
+    averageWeight: "",
+  });
+
+  useEffect(() => {
+    if (open) {
+      fetchCategories();
+      fetchSlaughterhouses();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (date) {
+      setFormData((prev) => ({ ...prev, productionDate: format(date, "yyyy-MM-dd") }));
+    }
+  }, [date]);
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await fetch("http://localhost:8000/meatCategories", {
+        method: "GET",
+        headers: {
+          contenttype: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch categories");
+      }
+
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      // Fallback data
+ 
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const fetchSlaughterhouses = async () => {
+    setLoadingSlaughterhouses(true);
+    try {
+      const response = await fetch("http://localhost:8000/slaughterhouses", {
+        method: "GET",
+        headers: {
+          contenttype: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch slaughterhouses");
+      }
+
+      const data = await response.json();
+      setSlaughterhouses(data);
+    } catch (error) {
+      console.error("Error fetching slaughterhouses:", error);
+      // Fallback data
+      setSlaughterhouses([{ slaughterHouseId: 1 }, { slaughterHouseId: 2 }]);
+    } finally {
+      setLoadingSlaughterhouses(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("New Item Data:", formData)
+    e.preventDefault();
+    console.log("New Item Data:", formData);
     setFormData({
-      itemType: "",
-      farmId: "",
-      category: "",
-      idealTemperature: "",
-      description: "",
-    })
-    setOpen(false)
-  }
+      categoryID: "",
+      slaughterhouseID: "",
+      productionDate: "",
+      averageWeight: "",
+    });
+    setDate(undefined);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -64,84 +150,106 @@ export function AddItemDialog() {
             <DialogDescription>Add a new meat item to the catalog.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="itemType" className="text-green-800">
-                Item Type
-              </Label>
-              <Select
-                value={formData.itemType}
-                onValueChange={(value) => handleSelectChange("itemType", value)}
-                required
-              >
-                <SelectTrigger id="itemType" className="border-green-200">
-                  <SelectValue placeholder="Select item type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beef">Beef</SelectItem>
-                  <SelectItem value="pork">Pork</SelectItem>
-                  <SelectItem value="lamb">Lamb</SelectItem>
-                  <SelectItem value="chicken">Chicken</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="categoryID" className="text-green-800">
+                  Category ID
+                </Label>
+                <Select
+                  value={formData.categoryID}
+                  onValueChange={(value) => handleSelectChange("categoryID", value)}
+                  required
+                >
+                  <SelectTrigger id="categoryID" className="border-green-200">
+                    {loadingCategories ? (
+                      <div className="flex items-center">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading...
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select category ID" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.categoryID} value={category.categoryID.toString()}>
+                        {category.categoryID}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slaughterhouseID" className="text-green-800">
+                  Slaughterhouse ID
+                </Label>
+                <Select
+                  value={formData.slaughterhouseID}
+                  onValueChange={(value) => handleSelectChange("slaughterhouseID", value)}
+                  required
+                >
+                  <SelectTrigger id="slaughterhouseID" className="border-green-200">
+                    {loadingSlaughterhouses ? (
+                      <div className="flex items-center">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading...
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select slaughterhouse ID" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {slaughterhouses.map((slaughterhouse) => (
+                      <SelectItem
+                        key={slaughterhouse.slaughterHouseId}
+                        value={slaughterhouse.slaughterHouseId.toString()}
+                      >
+                        {slaughterhouse.slaughterHouseId}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="farmId" className="text-green-800">
-                Farm ID
-              </Label>
-              <Input
-                id="farmId"
-                name="farmId"
-                value={formData.farmId}
-                onChange={handleChange}
-                className="border-green-200"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-green-800">
-                Category
-              </Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
-                required
-              >
-                <SelectTrigger id="category" className="border-green-200">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="economy">Economy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="idealTemperature" className="text-green-800">
-                Ideal Temperature (°C)
-              </Label>
-              <Input
-                id="idealTemperature"
-                name="idealTemperature"
-                type="number"
-                step="0.1"
-                value={formData.idealTemperature}
-                onChange={handleChange}
-                className="border-green-200"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-green-800">
-                Description
-              </Label>
-              <Input
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="border-green-200"
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="productionDate" className="text-green-800">
+                  Production Date
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-green-200",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "yyyy-MM-dd") : <span>Select date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="averageWeight" className="text-green-800">
+                  Average Weight (kg)
+                </Label>
+                <Input
+                  id="averageWeight"
+                  name="averageWeight"
+                  type="number"
+                  step="0.01"
+                  value={formData.averageWeight}
+                  onChange={handleChange}
+                  className="border-green-200"
+                  required
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -152,6 +260,5 @@ export function AddItemDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

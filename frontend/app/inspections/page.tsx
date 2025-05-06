@@ -205,18 +205,17 @@ export default function InspectionsPage() {
                   <TableCell>{inspection.inspectorId}</TableCell>
                   <TableCell>{inspection.date}</TableCell>
                   <TableCell>
-                    {inspection.status !== "Pending" ? (
+                    {inspection.status !== "Satisfactory" ? (
                       <div className="flex items-center gap-2">
                         <Progress
                           value={inspection.score}
-                          className="h-2"
-                          indicatorClassName={
+                          className={`h-2 ${
                             inspection.score >= 1
                               ? "bg-green-600"
                               : inspection.score >= 1
                               ? "bg-amber-500"
                               : "bg-red-500"
-                          }
+                          }`}
                         />
                         <span className="text-sm">{inspection.score}%</span>
                       </div>
@@ -227,10 +226,12 @@ export default function InspectionsPage() {
                   <TableCell>
                     <Badge
                       className={
-                        inspection.status === "Pass"
+                        inspection.status === "Passed"
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : inspection.status === "Recheck"
+                          : inspection.status === "Satisfactory"
                           ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+						  : inspection.status === "Passed with minor issues"
+						  ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
                           : "bg-red-100 text-red-800 hover:bg-red-200"
                       }
                     >

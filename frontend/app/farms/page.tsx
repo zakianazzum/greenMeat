@@ -1,8 +1,16 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +18,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tractor, Search, Filter, MoreHorizontal, MapPin } from "lucide-react"
-import { AddFarmDialog } from "@/components/add-farm-dialog"
+} from "@/components/ui/dropdown-menu";
+import { Tractor, Search, Filter, MoreHorizontal, MapPin } from "lucide-react";
+import { AddFarmDialog } from "@/components/add-farm-dialog";
+import { useEffect, useState } from "react";
 
 // Sample data for farms
 const farms = [
@@ -79,7 +88,7 @@ const farms = [
     itemCount: 7,
     status: "Pending",
   },
-]
+];
 
 // Sample data for regions
 const regionStats = [
@@ -87,9 +96,113 @@ const regionStats = [
   { name: "Northeast", count: 6, percentage: 25 },
   { name: "South", count: 5, percentage: 21 },
   { name: "West", count: 5, percentage: 21 },
-]
+];
+
+interface FarmByLocation {
+  zone : string;
+  farm_count: number;
+}
+
+interface TotalFarms {
+  total_farms: number;
+}
+
+interface FarmData {
+  farmID: number;
+  farmerID: number;
+  farmer_name: string;
+  zone: string;
+  items: number;
+  status: boolean;
+  statusText?: "Active" | "Inactive";
+}
 
 export default function FarmsPage() {
+
+	const [totalFarms, setTotalFarms] = useState<TotalFarms>();
+
+  useEffect(() => {
+    const fetchTotalFarms = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/totalFarms", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        console.log(response);
+
+        const data = await response.json();
+
+        console.log(data);
+
+        setTotalFarms(data);
+      } catch (error) {
+        console.error("Error fetching total active farms:", error);
+      }
+    };
+    fetchTotalFarms();
+  }, []);
+
+
+
+	const [farmsByLocation, setFarmsByLocation] = useState<FarmByLocation[]>([]);
+
+  useEffect(() => {
+    const fetchFarmByLocation = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/farmsByLocation", {
+          method: "GET",
+          headers: {
+            contenttype: "application/json",
+          },
+        });
+
+        console.log(response);
+
+        const data = await response.json();
+
+        console.log(data);
+
+        setFarmsByLocation(data);
+      } catch (error) {
+        console.error("Error fetching total active farms:", error);
+      }
+    };
+    fetchFarmByLocation();
+  }, []);
+
+
+const [farmData, setFarmData] = useState<(FarmData & { statusText: "Active" | "Inactive" })[]>([]);
+
+useEffect(() => {
+  const fetchFarmData = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/farmData", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json", // 🔄 Fix header case
+        },
+      });
+
+      const data = await response.json();
+
+      // 🔽 Map the data to include statusText
+      const dataWithText = data.map((farm: FarmData) => ({
+        ...farm,
+        statusText: farm.status ? "Active" : "Inactive",
+      }));
+
+      setFarmData(dataWithText); // ✅ Store the enriched data
+    } catch (error) {
+      console.error("Error fetching total active farms:", error);
+    }
+  };
+  fetchFarmData();
+}, []);
+
+
   return (
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
@@ -100,7 +213,11 @@ export default function FarmsPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search farms..." className="pl-8 bg-white border-green-200" />
+          <Input
+            type="search"
+            placeholder="Search farms..."
+            className="pl-8 bg-white border-green-200"
+          />
         </div>
         <Button variant="outline" className="border-green-200">
           <Filter className="mr-2 h-4 w-4 text-green-700" /> Filter
@@ -114,20 +231,20 @@ export default function FarmsPage() {
             <Tractor className="h-4 w-4 text-green-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-800">24</div>
+            <div className="text-2xl font-bold text-green-800">{totalFarms?.total_farms}</div>
             <p className="text-xs text-green-600">+2 new this month</p>
           </CardContent>
         </Card>
 
-        {regionStats.map((region) => (
-          <Card key={region.name} className="border-green-200">
+        {farmsByLocation.map((region) => (
+          <Card key={region.zone} className="border-green-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{region.name}</CardTitle>
+              <CardTitle className="text-sm font-medium">{region.zone}</CardTitle>
               <MapPin className="h-4 w-4 text-green-700" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-800">{region.count}</div>
-              <p className="text-xs text-green-600">{region.percentage}% of farms</p>
+              <div className="text-2xl font-bold text-green-800">{region.farm_count}</div>
+              {/* <p className="text-xs text-green-600">{region.percentage}% of farms</p> */}
             </CardContent>
           </Card>
         ))}
@@ -144,7 +261,6 @@ export default function FarmsPage() {
               <TableRow>
                 <TableHead className="w-[80px]">Farm ID</TableHead>
                 <TableHead>Farmer</TableHead>
-                <TableHead>Region</TableHead>
                 <TableHead>Zone</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Status</TableHead>
@@ -152,26 +268,23 @@ export default function FarmsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {farms.map((farm) => (
-                <TableRow key={farm.id} className="hover:bg-green-50">
-                  <TableCell className="font-medium">{farm.id}</TableCell>
+              {farmData.map((farm) => (
+                <TableRow key={farm.farmID} className="hover:bg-green-50">
+                  <TableCell className="font-medium">{farm.farmID}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span>{farm.farmerName}</span>
-                      <span className="text-xs text-muted-foreground">{farm.farmerId}</span>
+                      <span>{farm.farmer_name}</span>
+                      <span className="text-xs text-muted-foreground">{farm.farmerID}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{farm.region}</TableCell>
                   <TableCell>{farm.zone}</TableCell>
-                  <TableCell>{farm.itemCount}</TableCell>
+                  <TableCell>{farm.items}</TableCell>
                   <TableCell>
                     <Badge
                       className={
-                        farm.status === "Active"
+                        farm.status
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : farm.status === "Inactive"
-                            ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                            : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                       }
                     >
                       {farm.status}
@@ -202,6 +315,5 @@ export default function FarmsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

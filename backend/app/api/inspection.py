@@ -31,10 +31,11 @@ async def get_inspection_report():
     cursor = db.cursor()
     try:
         cursor.execute(
-            """SELECT reportID,batchID, inspectionID, inspectionDate, gradingScore, status, remarks
-			FROM inspectionreport
-			WHERE YEAR(inspectionDate) IN (2024, 2025)
-			ORDER BY YEAR(inspectionDate) DESC, inspectionDate DESC; """
+					"""SELECT ir.reportID,gr.batchID, gr.inspectorID, ir.inspectionDate, ir.totalScore, status, remarks
+					FROM inspectionreport_t ir
+					JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
+					WHERE YEAR(inspectionDate) IN (2024, 2025)
+					ORDER BY YEAR(inspectionDate) DESC, inspectionDate DESC;  """
         )
         result = cursor.fetchall()
     except mysql.connector.error as err:
@@ -64,10 +65,8 @@ async def get_inspection_report(report_id: int):
         query = """
 					SELECT 
 						ir.reportID,
-						ir.inspectionID AS inspectorID,
-						ir.batchID,
 						ir.inspectionDate,
-						ir.gradingScore,
+						ir.totalScore,
 						ir.status,
 						ir.remarks,
 						mb.productionDate,
@@ -75,50 +74,21 @@ async def get_inspection_report(report_id: int):
 						mc.categoryName,
 						mg.gradeName,
 						mg.description AS gradeDescription,
-						u.name AS inspectorName,
-						gc.criteriaName,
-						gc.description AS criteriaDescription,
-						gsr.score
-					FROM inspectionreport ir
-					JOIN meatbatch mb ON ir.batchID = mb.batchID
-					JOIN meatcategory mc ON mb.categoryID = mc.categoryID
-					JOIN meatgrade mg ON ir.gradeID = mg.gradeID
-					JOIN users u ON ir.inspectionID = u.id
-					JOIN gradingscorerecord gsr ON ir.reportID = gsr.reportID
-					JOIN gradingcriteria gc ON gsr.criteriaID = gc.criteriaID
-					WHERE ir.reportID = %s;"""
+						u.name AS inspectorName
+					FROM inspectionreport_t ir
+					JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
+					JOIN meatbatch_t mb ON gr.batchID = mb.batchID
+					JOIN meatcategory_t mc ON mb.categoryID = mc.categoryID
+					JOIN meatgrade_t mg ON ir.gradeID = mg.gradeID
+					JOIN user_t u ON gr.inspectorID = u.id
+					GROUP BY ir.reportID, ir.inspectionDate, ir.totalScore, ir.status, ir.remarks, mb.productionDate, 
+							mb.averageWeight, mc.categoryName, mg.gradeName, mg.description, u.name;"""
         cursor.execute(query, (report_id,))
         result = cursor.fetchall()
 
-        formattedDict = {}
-        formattedDict["status"] = result[0]["status"]
-        formattedDict["remarks"] = result[0]["remarks"]
-        formattedDict["batchID"] = result[0]["batchID"]
-        formattedDict["reportID"] = result[0]["reportID"]
-        formattedDict["gradeName"] = result[0]["gradeName"]
-        formattedDict["inspectorID"] = result[0]["inspectorID"]
-        formattedDict["categoryName"] = result[0]["categoryName"]
-        formattedDict["gradingScore"] = result[0]["gradingScore"]
-        formattedDict["inspectorName"] = result[0]["inspectorName"]
-        formattedDict["averageWeight"] = result[0]["averageWeight"]
-        formattedDict["productionDate"] = result[0]["productionDate"]
-        formattedDict["gradeDescription"] = result[0]["gradeDescription"]
-
-        formattedCriterias = []
-
-        for i in result:
-            criteriaDict = {}
-            criteriaDict["criteriaName"] = i["criteriaName"]
-            criteriaDict["criteriaDescription"] = i["criteriaDescription"]
-            criteriaDict["score"] = i["score"]
-
-            formattedCriterias.append(criteriaDict)
-
-        formattedDict["criteria"] = formattedCriterias
-
         if not result:
             raise HTTPException(status_code=404, detail="Inspection report not found")
-        return formattedDict
+        return result
 
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=f"Database error: {err}")
@@ -131,7 +101,7 @@ async def get_inspection_report(report_id: int):
 async def get_batchID():
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT batchId from meatbatch; """)
+        cursor.execute("""SELECT batchId from meatbatch_t; """)
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
@@ -144,7 +114,7 @@ async def get_batchID():
 async def get_inspectorID():
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT inspectorID from qualityinspector; """)
+        cursor.execute("""SELECT inspectorID from qualityinspector_t; """)
         result = cursor.fetchall()
 
     except mysql.connector.Error as err:
@@ -170,7 +140,7 @@ async def create_inspection_report(request: Request):
         # Fetch gradeID from meatbatch table using batchID
         cursor.execute(
             """
-            SELECT gradeID FROM meatbatch WHERE batchID = %s;
+            SELECT gradeID FROM meatbatch_t WHERE batchID = %s;
             """,
             (batchID,),
         )
