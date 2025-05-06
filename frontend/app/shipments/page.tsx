@@ -14,12 +14,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Truck, Search, Filter, MapPin } from "lucide-react";
 import { AddShipmentDialog } from "@/components/add-shipment-dialog";
+import { EditShipmentDialog } from "@/components/edit-shipment-dialog";
+import { DeleteShipmentDialog } from "@/components/delete-shipment-dialog";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function ShipmentsPage() {
   interface shipmentData {
-    id: number;
+    transportationId: number;
     trackingId: number;
     packageId: number;
     retailerId: number;
@@ -35,27 +37,24 @@ export default function ShipmentsPage() {
 
   const [shipment, setShipment] = useState<shipmentData[]>([]);
 
+  const fetchShipments = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/trackingInfo", {
+        method: "GET",
+        headers: {
+          contenttype: "application/json",
+        },
+      });
+
+      const data = await response.json();
+      setShipment(data);
+    } catch (error) {
+      console.error("Error fetching shipment data:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchshipment = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/trackingInfo", {
-          method: "GET",
-          headers: {
-            contenttype: "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        console.log(data);
-
-        // Map the data to the format required by the chart
-        setShipment(data);
-      } catch (error) {
-        console.error("Error fetching inspection report:", error);
-      }
-    };
-    fetchshipment();
+    fetchShipments();
   }, []);
 
   interface shipmentStats {
@@ -83,10 +82,6 @@ export default function ShipmentsPage() {
         });
 
         const data = await response.json();
-
-        console.log(data);
-
-        // Map the data to the format required by the chart
         setShipmentStats(data);
       } catch (error) {
         console.error("Error fetching shipment stats:", error);
@@ -99,7 +94,7 @@ export default function ShipmentsPage() {
     <div className="flex-1 space-y-4 p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight text-green-800">Shipment Tracking</h2>
-        <AddShipmentDialog />
+        <AddShipmentDialog onShipmentAdded={fetchShipments} />
       </div>
 
       <div className="flex items-center space-x-2">
@@ -124,7 +119,6 @@ export default function ShipmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-800">{shipmentStats.total_shipment}</div>
-            {/* <p className="text-xs text-green-600">+12% from last month</p> */}
           </CardContent>
         </Card>
 
@@ -135,7 +129,6 @@ export default function ShipmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{shipmentStats.in_transit}</div>
-            {/* <p className="text-xs text-blue-600">28% of total</p> */}
           </CardContent>
         </Card>
 
@@ -146,7 +139,6 @@ export default function ShipmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-800">{shipmentStats.delivered}</div>
-            {/* <p className="text-xs text-green-600">67% of total</p> */}
           </CardContent>
         </Card>
 
@@ -157,7 +149,6 @@ export default function ShipmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{shipmentStats.delayed}</div>
-            {/* <p className="text-xs text-amber-600">6% of total</p> */}
           </CardContent>
         </Card>
       </div>
@@ -187,7 +178,7 @@ export default function ShipmentsPage() {
             <TableBody>
               {shipment.map((shipment, i) => (
                 <TableRow key={i} className="hover:bg-green-50">
-                  <TableCell className="font-medium">{shipment.id}</TableCell>
+                  <TableCell className="font-medium">{shipment.transportationId}</TableCell>
                   <TableCell>{shipment.trackingId}</TableCell>
                   <TableCell>{shipment.packageId}</TableCell>
                   <TableCell>{shipment.retailerId}</TableCell>
@@ -211,7 +202,7 @@ export default function ShipmentsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{shipment.temperature}°C</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-2">
                     <Link href={`/shipments/${shipment.trackingId}`}>
                       <Button
                         variant="ghost"
@@ -221,6 +212,11 @@ export default function ShipmentsPage() {
                         <MapPin className="mr-1 h-4 w-4" /> Track
                       </Button>
                     </Link>
+                    <EditShipmentDialog shipment={shipment} onShipmentUpdated={fetchShipments} />
+                    <DeleteShipmentDialog
+                      trackingId={shipment.trackingId}
+                      onShipmentDeleted={fetchShipments}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

@@ -59,9 +59,9 @@ async def get_tracking_info():
 
     formatted_result = [
         {
-            "id": row[0],
+            "transportationId": row[0],
             "trackingId": row[1],
-            "batchId": row[2],
+            "packageId": row[2],
             "retailerId": row[3],
             "departureTime": row[4],
             "estimatedArrival": row[5],
@@ -132,3 +132,164 @@ async def get_shipment_info():
     }
 
     return formatted_result
+
+
+@shipment_router.post("/trackingInfo")
+async def create_tracking_info(request: Request):
+    cursor = db.cursor()
+    try:
+        data = await request.json()
+
+        # Validate required fields
+        required_fields = [
+            "packageId",
+            "retailerId",
+            "transportationId",
+            "departureDate",
+            "arrivalDate",
+            "status",
+        ]
+        for field in required_fields:
+            if field not in data:
+                raise HTTPException(
+                    status_code=400, detail=f"Missing required field: {field}"
+                )
+
+        # Insert new shipment tracking record
+        cursor.execute(
+            """INSERT INTO shipmenttracking_t 
+               (packageID, retailerID, transportationID, depertureDate, arrivalDate, status, longitude, latitude) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (
+                data["packageId"],
+                data["retailerId"],
+                data["transportationId"],
+                data["departureDate"],
+                data["arrivalDate"],
+                data["status"],
+                "0",  # Default longitude
+                "0",  # Default latitude
+            ),
+        )
+        db.commit()
+
+        # Get the inserted record
+        cursor.execute(
+            """SELECT 
+                st.transportationID,
+                st.trackingID,
+                st.packageID,
+                st.retailerID,
+                st.depertureDate,
+                st.arrivalDate,
+                st.status,
+                sd.temperature,
+                st.longitude,
+                st.latitude,
+                w.location AS origin,
+                u.zone AS destination
+            FROM shipmenttracking_t st
+            JOIN sensordata_t sd ON st.trackingID = sd.trackingID
+            JOIN packagedmeatbatch_t pmb ON st.packageID = pmb.packageID
+            JOIN warehouse_t w ON pmb.storeID = w.storeID
+            JOIN user_t u ON st.retailerID = u.id
+            WHERE st.transportationID = %s AND st.trackingID = LAST_INSERT_ID()""",
+            (data["transportationId"],),
+        )
+        result = cursor.fetchone()
+
+        return {
+            "message": "success"
+            # "transportationId": result[0],
+            # "trackingId": result[1],
+            # "packageId": result[2],
+            # "retailerId": result[3],
+            # "departureTime": result[4],
+            # "estimatedArrival": result[5],
+            # "status": result[6],
+            # "temperature": result[7],
+            # "longitude": result[8],
+            # "latitude": result[9],
+            # "origin": result[10],
+            # "destination": result[11],
+        }
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
+
+
+@shipment_router.put("/trackingInfo/{tracking_id}")
+async def update_tracking_info(tracking_id: int, request: Request):
+    cursor = db.cursor()
+    try:
+        data = await request.json()
+
+        # Validate required fields
+        required_fields = [
+            "packageId",
+            "retailerId",
+            "transportationId",
+            "departureDate",
+            "arrivalDate",
+            "status",
+        ]
+        for field in required_fields:
+            if field not in data:
+                raise HTTPException(
+                    status_code=400, detail=f"Missing required field: {field}"
+                )
+
+        # Update shipment tracking record
+        cursor.execute(
+            """UPDATE shipmenttracking_t 
+               SET packageID = %s, 
+                   retailerID = %s, 
+                   transportationID = %s,
+                   depertureDate = %s, 
+                   arrivalDate = %s, 
+                   status = %s 
+               WHERE trackingID = %s""",
+            (
+                data["packageId"],
+                data["retailerId"],
+                data["transportationId"],
+                data["departureDate"],
+                data["arrivalDate"],
+                data["status"],
+                tracking_id,
+            ),
+        )
+        db.commit()
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+
+        return {"message": "Shipment updated successfully"}
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
+
+
+@shipment_router.delete("/trackingInfo/{tracking_id}")
+async def delete_tracking_info(tracking_id: int):
+    cursor = db.cursor()
+    try:
+        # Delete shipment tracking record
+        cursor.execute(
+            "DELETE FROM shipmenttracking_t WHERE trackingID = %s", (tracking_id,)
+        )
+        db.commit()
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+
+        return {"message": "Shipment deleted successfully"}
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
