@@ -1,9 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,175 +10,166 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AddShipmentDialog() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    trackingId: "",
-    batchId: "",
+    packageId: "",
     retailerId: "",
-    departureTime: "",
-    estimatedArrival: "",
-    temperature: "",
-    status: "",
-  })
+    departureDate: "",
+    arrivalDate: "",
+    status: "Scheduled",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/trackingInfo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          packageId: parseInt(formData.packageId),
+          retailerId: parseInt(formData.retailerId),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add shipment");
+      }
+
+      setOpen(false);
+      // Reset form
+      setFormData({
+        packageId: "",
+        retailerId: "",
+        departureDate: "",
+        arrivalDate: "",
+        status: "Scheduled",
+      });
+    } catch (error) {
+      console.error("Error adding shipment:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, status: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("New Shipment Data:", formData)
-    setFormData({
-      trackingId: "",
-      batchId: "",
-      retailerId: "",
-      departureTime: "",
-      estimatedArrival: "",
-      temperature: "",
-      status: "",
-    })
-    setOpen(false)
-  }
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-700 hover:bg-green-800">
+        <Button className="bg-green-600 hover:bg-green-700">
           <Plus className="mr-2 h-4 w-4" /> New Shipment
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle className="text-green-800">Create New Shipment</DialogTitle>
-            <DialogDescription>Schedule a new meat product shipment.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="trackingId" className="text-green-800">
-                  Tracking ID
-                </Label>
-                <Input
-                  id="trackingId"
-                  name="trackingId"
-                  value={formData.trackingId}
-                  onChange={handleChange}
-                  className="border-green-200"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="batchId" className="text-green-800">
-                  Batch ID
-                </Label>
-                <Input
-                  id="batchId"
-                  name="batchId"
-                  value={formData.batchId}
-                  onChange={handleChange}
-                  className="border-green-200"
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="retailerId" className="text-green-800">
-                Retailer ID
-              </Label>
-              <Input
-                id="retailerId"
-                name="retailerId"
-                value={formData.retailerId}
-                onChange={handleChange}
-                className="border-green-200"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="departureTime" className="text-green-800">
-                  Departure Time
-                </Label>
-                <Input
-                  id="departureTime"
-                  name="departureTime"
-                  type="datetime-local"
-                  value={formData.departureTime}
-                  onChange={handleChange}
-                  className="border-green-200"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="estimatedArrival" className="text-green-800">
-                  Estimated Arrival
-                </Label>
-                <Input
-                  id="estimatedArrival"
-                  name="estimatedArrival"
-                  type="datetime-local"
-                  value={formData.estimatedArrival}
-                  onChange={handleChange}
-                  className="border-green-200"
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="temperature" className="text-green-800">
-                  Temperature (°C)
-                </Label>
-                <Input
-                  id="temperature"
-                  name="temperature"
-                  type="number"
-                  step="0.1"
-                  value={formData.temperature}
-                  onChange={handleChange}
-                  className="border-green-200"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-green-800">
-                  Status
-                </Label>
-                <Select value={formData.status} onValueChange={handleSelectChange} required>
-                  <SelectTrigger id="status" className="border-green-200">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="in-transit">In Transit</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="delayed">Delayed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <DialogHeader>
+          <DialogTitle>Add New Shipment</DialogTitle>
+          <DialogDescription>
+            Create a new shipment tracking record. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="packageId">Package ID</Label>
+            <Input
+              id="packageId"
+              name="packageId"
+              type="number"
+              value={formData.packageId}
+              onChange={handleChange}
+              required
+            />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="retailerId">Retailer ID</Label>
+            <Input
+              id="retailerId"
+              name="retailerId"
+              type="number"
+              value={formData.retailerId}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="departureDate">Departure Date</Label>
+            <Input
+              id="departureDate"
+              name="departureDate"
+              type="datetime-local"
+              value={formData.departureDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="arrivalDate">Estimated Arrival Date</Label>
+            <Input
+              id="arrivalDate"
+              name="arrivalDate"
+              type="datetime-local"
+              value={formData.arrivalDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => handleSelectChange("status", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Scheduled">Scheduled</SelectItem>
+                <SelectItem value="In Transit">In Transit</SelectItem>
+                <SelectItem value="Delivered">Delivered</SelectItem>
+                <SelectItem value="Delayed">Delayed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <DialogFooter>
-            <Button type="submit" className="bg-green-700 hover:bg-green-800">
-              Create Shipment
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Add Shipment"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

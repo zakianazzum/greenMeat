@@ -21,7 +21,7 @@ export default function ShipmentsPage() {
   interface shipmentData {
     id: number;
     trackingId: number;
-    batchId: number;
+    packageId: number;
     retailerId: number;
     departureTime: string;
     estimatedArrival: string;
@@ -29,6 +29,8 @@ export default function ShipmentsPage() {
     temperature: string;
     longitude: string;
     latitude: string;
+    origin: string;
+    destination: string;
   }
 
   const [shipment, setShipment] = useState<shipmentData[]>([]);
@@ -171,8 +173,10 @@ export default function ShipmentsPage() {
               <TableRow>
                 <TableHead className="w-[100px]">Shipment ID</TableHead>
                 <TableHead>Tracking ID</TableHead>
-                <TableHead>Batch ID</TableHead>
+                <TableHead>Package ID</TableHead>
                 <TableHead>Retailer</TableHead>
+                <TableHead>Origin</TableHead>
+                <TableHead>Destination</TableHead>
                 <TableHead>Departure</TableHead>
                 <TableHead>ETA</TableHead>
                 <TableHead>Status</TableHead>
@@ -185,10 +189,12 @@ export default function ShipmentsPage() {
                 <TableRow key={i} className="hover:bg-green-50">
                   <TableCell className="font-medium">{shipment.id}</TableCell>
                   <TableCell>{shipment.trackingId}</TableCell>
-                  <TableCell>{shipment.batchId}</TableCell>
+                  <TableCell>{shipment.packageId}</TableCell>
                   <TableCell>{shipment.retailerId}</TableCell>
-                  <TableCell>{shipment.departureTime}</TableCell>
-                  <TableCell>{shipment.estimatedArrival}</TableCell>
+                  <TableCell>{shipment.origin}</TableCell>
+                  <TableCell>{shipment.destination}</TableCell>
+                  <TableCell>{new Date(shipment.departureTime).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(shipment.estimatedArrival).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Badge
                       className={
@@ -204,7 +210,7 @@ export default function ShipmentsPage() {
                       {shipment.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{shipment.temperature}</TableCell>
+                  <TableCell>{shipment.temperature}°C</TableCell>
                   <TableCell className="text-right">
                     <Link href={`/shipments/${shipment.trackingId}`}>
                       <Button
