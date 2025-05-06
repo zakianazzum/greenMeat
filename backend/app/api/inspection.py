@@ -63,32 +63,70 @@ async def get_inspection_report(report_id: int):
 
     try:
         query = """
-					SELECT 
-						ir.reportID,
-						ir.inspectionDate,
-						ir.totalScore,
-						ir.status,
-						ir.remarks,
-						mb.productionDate,
-						mb.averageWeight,
-						mc.categoryName,
-						mg.gradeName,
-						mg.description AS gradeDescription,
-						u.name AS inspectorName
-					FROM inspectionreport_t ir
-					JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
-					JOIN meatbatch_t mb ON gr.batchID = mb.batchID
-					JOIN meatcategory_t mc ON mb.categoryID = mc.categoryID
-					JOIN meatgrade_t mg ON ir.gradeID = mg.gradeID
-					JOIN user_t u ON gr.inspectorID = u.id
-					GROUP BY ir.reportID, ir.inspectionDate, ir.totalScore, ir.status, ir.remarks, mb.productionDate, 
-							mb.averageWeight, mc.categoryName, mg.gradeName, mg.description, u.name;"""
+            SELECT 
+                ir.reportID,
+                gr.inspectorID,
+                ir.totalScore,
+                ir.status,
+                ir.remarks,
+                gr.batchID,
+                mb.productionDate,
+                mb.averageWeight,
+                mc.categoryName,
+                mg.gradeName,
+                mg.description AS gradeDescription,
+                u.name AS inspectorName
+            FROM inspectionreport_t ir
+            JOIN gradingscorerecord_t gr ON ir.gRecordID = gr.gRecordID
+            JOIN meatbatch_t mb ON gr.batchID = mb.batchID
+            JOIN meatcategory_t mc ON mb.categoryID = mc.categoryID
+            JOIN meatgrade_t mg ON ir.gradeID = mg.gradeID
+            JOIN user_t u ON gr.inspectorID = u.id
+            WHERE ir.reportID = %s;
+        """
         cursor.execute(query, (report_id,))
-        result = cursor.fetchall()
+        result = cursor.fetchone()
 
         if not result:
             raise HTTPException(status_code=404, detail="Inspection report not found")
         return result
+
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+
+    finally:
+        cursor.close()
+
+
+@inspection_router.get("/criteriaInfo/{report_id}")
+async def get_inspection_report(report_id: int):
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        query = """
+            SELECT 
+                g.criteriaID,
+                c.criteriaName,
+                g.score
+            FROM 
+                inspectionreport_t AS r
+            JOIN 
+                gradingscorerecord_t AS g1 ON r.gRecordID = g1.gRecordID
+            JOIN 
+                gradingscorerecord_t AS g ON g.inspectorID = g1.inspectorID 
+                                         AND g.batchID = g1.batchID
+            JOIN 
+                gradingcriteria_t AS c ON g.criteriaID = c.criteriaID
+            WHERE 
+                r.reportID = %s;
+        """
+        cursor.execute(query, (report_id,))
+        results = cursor.fetchall()
+
+        if not results:
+            raise HTTPException(status_code=404, detail="Inspection report not found")
+
+        return results
 
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=f"Database error: {err}")

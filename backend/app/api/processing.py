@@ -91,3 +91,4 @@ async def get_total_processing_records():
 	# Format the results into the desired JSON structure.
 	formatted_result = {"total_processing_records": result[0]["total_processing_records"]}
 	return formatted_result
+

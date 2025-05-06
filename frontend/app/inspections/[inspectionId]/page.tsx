@@ -84,11 +84,13 @@ interface reportDetails {
   gradeName: string;
   inspectorID: number;
   categoryName: string;
-  gradingScore: number;
+  totalScore: number;
   inspectorName: string;
   averageWeight: number;
   productionDate: string;
   gradeDescription: string;
+
+
   criteria: [
     {
       criteriaName: string;
