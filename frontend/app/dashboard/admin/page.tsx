@@ -192,14 +192,13 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [totalBatches, setTotalBatches] = useState(0);
 
-
   // Define the Info interface
   interface Info {
     month: string;
     delivered: number;
     delayed: number;
   }
-  
+
   const [info, setInfo] = useState<Info[]>([]);
   useEffect(() => {
     const fetchInfo = async () => {
@@ -222,11 +221,11 @@ export default function Dashboard() {
     fetchInfo();
   }, []);
 
-    const shipmentData = info.map((item) => ({
-      name: item.month,
-      completed: item.delivered,
-      pending: item.delayed,
-    }));
+  const shipmentData = info.map((item) => ({
+    name: item.month,
+    completed: item.delivered,
+    pending: item.delayed,
+  }));
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   useEffect(() => {
@@ -387,33 +386,31 @@ export default function Dashboard() {
     failure_percentage: number;
   }
 
+  interface Quality {
+    name: string;
+    value: number;
+  }
+  const [quality, setquality] = useState<Quality[]>([]);
+  useEffect(() => {
+    const fetchQuality = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/qualityDistribution");
 
-	 interface Quality {
-     name: string;
-     value: number;
-   }
-    const [quality, setquality] = useState<Quality[]>([]);
-    useEffect(() => {
-      const fetchQuality = async () => {
-        try {
-          const response = await fetch("http://localhost:8000/qualityDistribution");
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch quality distribution data: ${response.status}`);
-          }
-
-          const data = await response.json();
-          setquality(data);
-        } catch (err) {
-          console.error("Error fetching quality data:", err);
-        } finally {
-          setIsLoading(false);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch quality distribution data: ${response.status}`);
         }
-      };
 
-      fetchQuality();
-    }, []);
+        const data = await response.json();
+        setquality(data);
+      } catch (err) {
+        console.error("Error fetching quality data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    fetchQuality();
+  }, []);
 
   const renderCustomizedLabel = ({
     cx,
@@ -543,6 +540,18 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {/* Grading Criteria Section - Full Width */}
+          <Card className="border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800">Grading Criteria</CardTitle>
+              <CardDescription>Standards for meat quality assessment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QualityCriteriaTable />
+            </CardContent>
+          </Card>
+
+          {/* Charts Section */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="col-span-4 border-green-200">
               <CardHeader>
@@ -603,93 +612,32 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4 border-green-200">
-              <CardHeader>
-                <CardTitle className="text-green-800">Shipment Status</CardTitle>
-                <CardDescription>Completed vs pending shipments</CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={shipmentData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: "#f0fdf4",
-                        borderColor: "#bbf7d0",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Line type="monotone" dataKey="completed" stroke="#16a34a" strokeWidth={2} />
-                    <Line type="monotone" dataKey="pending" stroke="#f59e0b" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* <Card className="col-span-3 border-green-200">
-              <CardHeader>
-                <CardTitle className="text-green-800">Recent Activity</CardTitle>
-                <CardDescription>Latest system events</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 p-1.5 rounded-full">
-                      <Package className="h-4 w-4 text-green-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">New batch created</p>
-                      <p className="text-xs text-muted-foreground">Batch #1234 - 30 mins ago</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 p-1.5 rounded-full">
-                      <ClipboardCheck className="h-4 w-4 text-green-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Inspection completed</p>
-                      <p className="text-xs text-muted-foreground">Report #567 - 1 hour ago</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 p-1.5 rounded-full">
-                      <Truck className="h-4 w-4 text-green-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Shipment departed</p>
-                      <p className="text-xs text-muted-foreground">Tracking #789 - 2 hours ago</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 p-1.5 rounded-full">
-                      <Users className="h-4 w-4 text-green-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">New inspector added</p>
-                      <p className="text-xs text-muted-foreground">User #456 - 3 hours ago</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card> */}
-
-            <Card className="col-span-3 border-green-200">
-              <CardHeader>
-                <CardTitle className="text-green-800">Grading Criteria</CardTitle>
-                <CardDescription>Standards for meat quality assessment</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <QualityCriteriaTable />
-              </CardContent>
-            </Card>
-          </div>
+          {/* Shipment Status Section */}
+          <Card className="border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800">Shipment Status</CardTitle>
+              <CardDescription>Completed vs pending shipments</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={shipmentData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: "#f0fdf4",
+                      borderColor: "#bbf7d0",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="completed" stroke="#16a34a" strokeWidth={2} />
+                  <Line type="monotone" dataKey="pending" stroke="#f59e0b" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </TabsContent>
         {/* 
         <TabsContent value="analytics" className="space-y-4">

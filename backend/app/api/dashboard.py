@@ -54,7 +54,9 @@ async def get_active_farms():
 
     cursor = db.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) AS active_farms FROM farms_t WHERE isActive = 1;")
+        cursor.execute(
+            "SELECT COUNT(*) AS active_farms FROM farms_t WHERE isActive = 1;"
+        )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
@@ -184,7 +186,7 @@ async def get_alert_info():
     except mysql.connector.Error as err:
         cursor.close()
         raise HTTPException(status_code=500, detail=f"Database error as {err}")
-    return result 
+    return result
 
 
 @dashboard_router.get("/qualityDistribution")
@@ -192,19 +194,18 @@ async def get_quality_distribution():
     cursor = db.cursor(dictionary=True)
     try:
         cursor.execute(
-					"""SELECT 
+            """SELECT 
 							mg.gradeName AS name,
 							(COUNT(ir.reportID) / (SELECT COUNT(*) FROM inspectionreport_t) * 100) AS value
 						FROM inspectionreport_t ir
 						JOIN meatgrade_t mg ON ir.gradeID = mg.gradeID
 						GROUP BY mg.gradeID;"""
-		)
+        )
         result = cursor.fetchall()
     except mysql.connector.Error as err:
         cursor.close()
         raise HTTPException(status_code=500, detail=f"Database error as {err}")
     return result
-        
 
 
 @dashboard_router.get("/deliveredVsPending")
@@ -231,3 +232,62 @@ async def get_delivered_vs_pending():
         cursor.close()
         raise HTTPException(status_code=500, detail=f"Database error as {err}")
     return result
+
+
+@dashboard_router.post("/criteriaInfo")
+async def add_criteria(request: Request):
+    cursor = db.cursor()
+    try:
+        data = await request.json()
+
+        # Extract fields from request
+        criteria_name = data.get("criteriaName")
+        description = data.get("description")
+        max_score = data.get("maxScore")
+
+        # Validate required fields
+        if not all([criteria_name, description, max_score]):
+            raise HTTPException(status_code=400, detail="Missing required fields")
+
+        # Insert new criteria
+        query = """
+            INSERT INTO gradingcriteria_t 
+            (criteriaName, description, maxScore)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (criteria_name, description, max_score))
+
+        db.commit()
+        new_criteria_id = cursor.lastrowid
+
+        return {
+            "message": "Grading criteria added successfully",
+            "criteriaID": new_criteria_id,
+        }
+
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
+
+
+@dashboard_router.delete("/criteriaInfo/{criteria_id}")
+async def delete_criteria(criteria_id: int):
+    cursor = db.cursor()
+    try:
+        # Delete criteria
+        query = "DELETE FROM gradingcriteria_t WHERE criteriaID = %s"
+        cursor.execute(query, (criteria_id,))
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Grading criteria not found")
+
+        db.commit()
+        return {"message": "Grading criteria deleted successfully"}
+
+    except mysql.connector.Error as err:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+    finally:
+        cursor.close()
